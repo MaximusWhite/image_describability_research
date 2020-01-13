@@ -1,0 +1,117 @@
+import torch
+import numpy
+from resnet_implementation import resnet as rn
+from torchvision.transforms import transforms
+from dataset_class import dataset_class as dc
+from torch.utils.data import DataLoader
+from torch.nn import Linear, MSELoss
+import time
+import copy
+import sys
+
+
+train_dataset = dc.ImageDataset('train')
+val_dataset = dc.ImageDataset('val')
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+def train_model(model, criterion, optimizer, scheduler, num_epochs=25):
+    since = time.time()
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_acc = 0.0
+    min_loss = sys.float_info.max
+    for epoch in range(num_epochs):
+        print('Epoch {}/{}'.format(epoch, num_epochs - 1))
+        print('-' * 10)
+
+        # Each epoch has a training and validation phase
+        for phase in ['train', 'val']:
+            print('Phase: ', phase)
+            if phase == 'train':
+                model.train()  # Set model to training mode
+            else:
+                model.eval()   # Set model to evaluate mode
+
+            running_loss = 0.0
+            running_corrects = 0
+
+            # Iterate over data.
+            for i_batch, sample in enumerate(dataloaders[phase]):
+                batch_start = time.time()
+                img = sample['img'].to(device=device, dtype=torch.float)
+                scores = sample['scores'].to(device=device, dtype=torch.float)
+                # zero the parameter gradients
+                optimizer.zero_grad()
+
+                # forward
+                # track history if only in train
+                with torch.set_grad_enabled(phase == 'train'):
+                    outputs = model(img)
+                    #_, preds = torch.max(outputs, 1)
+                    loss = criterion(outputs, scores)
+
+                    # backward + optimize only if in training phase
+                    if phase == 'train':
+                        loss.backward()
+                        optimizer.step()
+
+                # statistics
+                running_loss += loss.item() * img.size(0)
+
+                if i_batch % 10 == 0:
+                    batch_end = time.time()
+                    loss_data = loss.item()
+                    print(
+                        '{} Epoch: {} [{}/{} ({:.2f}%)] Loss: {:.6f}\tTime: {:.3f}s/batch\t Total time: {:.0f}m {:.0f}s'.format(phase,
+                            epoch, i_batch, len(dataloaders[phase].dataset),
+                            100. * i_batch / len(dataloaders[phase].dataset), loss_data, batch_end - batch_start, (time.time() - since) // 60, (time.time() - since) % 60
+                        )
+                    )
+                #running_corrects += torch.sum(outputs == scores)
+            # if phase == 'train':
+            #     scheduler.step()
+
+            epoch_loss = running_loss / len(dataloaders[phase])
+            #epoch_acc = running_corrects.double() / len(dataloaders[phase])
+
+            print('{} Loss: {:.4f}'.format(
+                phase, epoch_loss))
+
+            # deep copy the model
+            if phase == 'val' and epoch_loss < min_loss:
+                min_loss = epoch_loss
+                best_model_wts = copy.deepcopy(model.state_dict())
+
+        print()
+
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(
+        time_elapsed // 60, time_elapsed % 60))
+    print('Best val loss: {:4f}'.format(loss))
+
+    # load best model weights
+    model.load_state_dict(best_model_wts)
+    return model, min_loss
+
+# dataloader = DataLoader(train_dataset, batch_size=4,
+#                         shuffle=True, num_workers=4)
+
+dataloaders = {
+    'train':    DataLoader(train_dataset, batch_size=5, shuffle=True, num_workers=6),
+    'val':  DataLoader(val_dataset, batch_size=5, shuffle=True, num_workers=6),
+    }
+
+model = rn.resnet101(pretrained=True, progress=True)
+# model.fc = Linear(512, 2)
+model.fc = Linear(2048, 1)
+model = model.to(device)
+loss = MSELoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+
+model, lowest_loss = train_model(model, loss, optimizer, None, num_epochs=25)
+torch.save(model.state_dict(), './models/model101(1 out)_{}.config'.format(lowest_loss))
+
+
+# model = torch.load('./models/model50_0.013395622096868464.pt')
+# model.eval()
+
+
