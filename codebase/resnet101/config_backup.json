@@ -1,0 +1,23 @@
+{ "version": "v3",
+  "batch_size": 100,
+  "models": [
+    {
+        "id": "ResNet101-5 metrics (unfrozen 4)",
+        "model": "rn.resnet101",
+        "config": "v3 model101(5 out)_unfrozen-full4_{}.config",
+        "last_layer": "Linear({}, 5, bias=False)",
+        "layers_to_freeze": ["layer4","fc"],
+        "loss": "MSELoss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001)"
+    },
+    {
+        "id": "ResNet152-5 metrics (unfrozen 4)",
+        "model": "rn.resnet152",
+        "config": "v3 model152(5 out)_unfrozen-full4_{}.config",
+        "last_layer": "Linear({}, 5, bias=False)",
+        "layers_to_freeze": ["layer4","fc"],
+        "loss": "MSELoss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001)"
+    }
+  ]
+}

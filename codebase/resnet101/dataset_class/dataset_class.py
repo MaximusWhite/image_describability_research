@@ -22,8 +22,8 @@ class ImageDataset(Dataset):
     def __init__(self, mode='train', split=(0.7, 0.1), transform=None):
         self.path_to_coco = os.path.expanduser('~/Projects/image_captioning/datasets/coco/annotations/')
         # self.path_to_salicon = os.path.expanduser('~/Projects/image_captioning/datasets/salicon/')
-        self.meta_path = os.path.expanduser('~/Projects/image_captioning/datasets/meta/v2/')
-        self.path_to_img = '/media/fast/mkorchev/datasets/coco/train2014/'
+        self.meta_path = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v2/')
+        self.path_to_img = '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco/train2014/'
 
         with open(os.path.join(self.meta_path, 'total_scores.json'), 'r') as infile:
             dataset = json.load(infile)
@@ -70,7 +70,7 @@ class ImageDataset(Dataset):
         sample = {
             'img': image,
             'scores': torch.from_numpy(np.array([
-                self.dataset[idx]['data']['averages'][0]['score_average']
+                metric['score_average'] for metric in self.dataset[idx]['data']['averages']
             ]))
         }
 

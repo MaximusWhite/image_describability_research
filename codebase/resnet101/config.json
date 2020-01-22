@@ -1,22 +1,14 @@
-{ "version": "v2",
+{ "version": "v4",
+  "batch_size": 20,
   "models": [
     {
-        "id": "ResNet101-single output (unfrozen 4)",
+        "id": "ResNet101-5 metrics (unfrozen 3,4) v4",
         "model": "rn.resnet101",
-        "config": "v2model101(1 out)_unfrozen-full4_{}.config",
-        "last_layer": "Linear({}, 1, bias=False)",
-        "layers_to_freeze": ["layer4","fc"],
+        "config": "v4 model101(5 out)_unfrozen-full3,4_{}.config",
+        "last_layer": "Linear({}, 5, bias=False)",
+        "layers_to_unfreeze": ["layer3","layer4","fc"],
         "loss": "MSELoss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001)"
-    },
-    {
-        "id": "ResNet152-single output (unfrozen 4)",
-        "model": "rn.resnet152",
-        "config": "v2model152(1 out)_unfrozen-full4_{}.config",
-        "last_layer": "Linear({}, 1, bias=False)",
-        "layers_to_freeze": ["layer4","fc"],
-        "loss": "MSELoss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001)"
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)"
     }
   ]
 }
