@@ -38,10 +38,6 @@ transform_pile = transforms.Compose([
             transforms.ToTensor()
         ])
 
-train_dataset = dc.ImageDataset('train', split=(0.8, 0.1), transform=transform_pile)
-val_dataset = dc.ImageDataset('val', split=(0.8, 0.1), transform=transform_pile)
-test_dataset = dc.ImageDataset('test', split=(0.8, 0.1), transform=transform_pile)
-
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 print('cuda name: {}'.format(torch.cuda.get_device_name(1)))
 device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
@@ -131,19 +127,24 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler, log_filenam
     model.load_state_dict(best_model_wts)
     return model, min_loss
 
-dataloaders = {
-    'train':    DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
-    'val':  DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
-    }
+
 
 for mod in config['models']:
+    targets = mod['targets']
+    train_dataset = dc.ImageDataset('train', split=(0.8, 0.1), transform=transform_pile, targets=targets)
+    val_dataset = dc.ImageDataset('val', split=(0.8, 0.1), transform=transform_pile, targets=targets)
+    test_dataset = dc.ImageDataset('test', split=(0.8, 0.1), transform=transform_pile, targets=targets)
+    dataloaders = {
+        'train': DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
+        'val': DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
+    }
     model_id = mod['id']
     print('Training model {}...'.format(model_id))
     print('Batch size: {}'.format(config['batch_size']))
     model_callback = eval(mod['model'])
     model = model_callback(pretrained=True, progress=True)
     if 'last_layer' in mod:
-        model.fc = eval(mod['last_layer'].format(model.fc.in_features))
+        model.fc = eval(mod['last_layer'].format(model.fc.in_features, len(targets)))
     if 'layers_to_unfreeze' in mod:
         layers = mod['layers_to_unfreeze']
         for name, param in model.named_parameters():
