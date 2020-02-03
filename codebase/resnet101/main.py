@@ -1,5 +1,5 @@
 import torch
-import numpy
+import numpy as np
 from torchvision.models import resnet as rn
 from torchvision.transforms import transforms
 from dataset_class import dataset_class as dc
@@ -11,36 +11,46 @@ import sys
 import os
 import json
 import shutil
-
+import scipy
+import matplotlib.pyplot as plt
+# from torch.utils.tensorboard import SummaryWriter
+# writer = SummaryWriter()
 
 cnt = 0
 
 with open(os.path.join('./config.json'), 'r') as infile:
     config = json.load(infile)
+with open(os.path.join('./metrics.json'), 'r') as infile:
+    metrics = (json.load(infile))["metrics"]
 
 # model_path = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/models/')
 # model_folder = './models/{}'.format(config['version'])
 model_folder = os.path.join('/mnt/zeta_share_1/mkorchev/image_captioning/models/', config['version'])
 logs_folder = os.path.join(model_folder, 'logs')
+results_folder = os.path.join(model_folder, 'results')
+plots_folder = os.path.join(model_folder, 'plots')
 
 if not os.path.isdir(model_folder):
     os.mkdir(model_folder)
     os.mkdir(logs_folder)
+    os.mkdir(results_folder)
+    os.mkdir(plots_folder)
     print('created {}'.format(model_folder))
 else:
     inp = input('Model set {} already exists. Continue?(y/yes)\t'.format(config['version']))
     if inp.lower() != 'y' and inp.lower() != 'yes':
         exit()
 
+shutil.copyfile(os.path.join('./config.json'), os.path.join(model_folder, './config_backup.json'))
 
 transform_pile = transforms.Compose([
             transforms.Resize((640, 640)),
             transforms.ToTensor()
         ])
-
+gpu_id = 0 if len(sys.argv) == 1 else int(sys.argv[1])
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-print('cuda name: {}'.format(torch.cuda.get_device_name(1)))
-device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
+print('cuda name: {}, ID: {}'.format(torch.cuda.get_device_name(gpu_id), gpu_id))
+device = torch.device('cuda:{}'.format(gpu_id) if torch.cuda.is_available() else "cpu")
 
 def train_model(model, criterion, optimizer, dataloaders, scheduler, log_filename, num_epochs=25):
     since = time.time()
@@ -127,7 +137,46 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler, log_filenam
     model.load_state_dict(best_model_wts)
     return model, min_loss
 
-
+def test_model(model, test_dataset, targets, model_id):
+    print('Testing {}...'.format(model_id))
+    test_results = {
+        'gt': [],
+        'pred': [],
+        'pearson_score': -9999
+    }
+    model.eval()
+    predictions = []
+    actuals = []
+    for i in range(len(test_dataset)):
+        image = test_dataset[i]['img'].to(device=device, dtype=torch.float)
+        gt = test_dataset[i]['scores'].to(device=device, dtype=torch.float)
+        pred = model(image[None])
+        gt_num = gt.cpu().detach().numpy()
+        pred_num = pred.cpu().detach().numpy()[0]
+        predictions.append(pred_num)
+        actuals.append(gt_num)
+        test_results['gt'].append(gt_num)
+        test_results['pred'].append(pred_num)
+        if i % 100 == 0:
+            print('\rProcessed {:4.4f}%'.format((i / len(test_dataset) * 100)), end="")
+            sys.stdout.flush()
+    print('\n')
+    predictions = np.array(predictions)
+    actuals = np.array(actuals)
+    for ind in range(len(targets)):
+        plt.scatter(predictions[:, ind], actuals[:, ind], c='blue', alpha=0.3)
+        plt.title('{}: {}'.format(model_id, metrics[targets[ind]]['metric_id']))
+        plt.xlabel('pred')
+        plt.ylabel('actual')
+        plt.ylim(0.0, 1.0)
+        plt.xlim(0.0, 1.0)
+        plt.savefig(os.path.join(plots_folder, '{}::{}.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
+        pearson_score = scipy.stats.pearsonr(np.array(actuals[:, ind]).astype(float), np.array(predictions[:, ind]).astype(float))[0]
+        print('Pearson correlation coefficient: {}'.format(pearson_score))
+    test_results['gt'] = (np.array(test_results['gt']).astype(str)).tolist()
+    test_results['pred'] = (np.array(test_results['pred']).astype(str)).tolist()
+    test_results['pearson_score'] = pearson_score
+    return test_results
 
 for mod in config['models']:
     targets = mod['targets']
@@ -166,21 +215,7 @@ for mod in config['models']:
     log_filename = '{}-LOG.log'.format(model_id)
     model, lowest_loss = train_model(model, loss, optimizer, dataloaders, None, log_filename, num_epochs=25)
     torch.save(model.state_dict(), os.path.join(model_folder, mod['config'].format(lowest_loss)))
-# model = rn.resnet101(pretrained=True, progress=True)
-# # model.fc = Linear(512, 2)
-# model.fc = Linear(2048, 1, bias=False)
-# count = 0
-# for name, param in model.named_parameters():
-#     count += 1
-#     if not ('layer4' in name or 'fc' in name):
-#         print('{}\tFrozen'.format(name))
-#         param.requires_grad = False
-#     else:
-#         print('{}\tWarm'.format(name))
-#
-# model = model.to(device)
-# loss = MSELoss()
-# optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-#
-# model, lowest_loss = train_model(model, loss, optimizer, dataloaders, None, num_epochs=25)
-# torch.save(model.state_dict(), './models/model101(1 out)_unfrozen-full4_{}.config'.format(lowest_loss))
+    # TEST
+    results = test_model(model, test_dataset, mod['targets'], model_id)
+    with open(os.path.join(results_folder, mod['test_result_filename']), 'w') as outfile:
+        json.dump(results, outfile)

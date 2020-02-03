@@ -1,55 +1,60 @@
-{ "version": "v6",
-  "batch_size": 15,
+{ "version": "v9",
+  "batch_size": 146,
   "models": [
     {
-        "id": "ResNet101-b_score (unfrozen 4) v6",
-        "model": "rn.resnet101",
-        "config": "v6 model101(b_score)_unfrozen-full4_{}.config",
+        "id": "ResNet18-b_score (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(b_score)_unfrozen-full4_{}.config",
         "last_layer": "Linear({}, {}, bias=False)",
         "layers_to_unfreeze": ["layer4","fc"],
         "loss": "MSELoss",
         "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
-        "targets": [0]
+        "targets": [0],
+        "test_result_filename": "test_results_v9(b_score)_unfrozen 4.json"
     },
     {
-        "id": "ResNet101-rouge2 (unfrozen 4) v6",
-        "model": "rn.resnet101",
-        "config": "v6 model101(rouge2)_unfrozen-full4_{}.config",
+        "id": "ResNet18-rouge2 (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(rouge2)_unfrozen-full4_{}.config",
         "last_layer": "Linear({}, {}, bias=False)",
         "layers_to_unfreeze": ["layer4","fc"],
         "loss": "MSELoss",
         "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
-        "targets": [1]
+        "targets": [1],
+        "test_result_filename": "test_results_v9(rouge2)_unfrozen 4.json"
     },
     {
-        "id": "ResNet101-rouge3 (unfrozen 4) v6",
-        "model": "rn.resnet101",
-        "config": "v6 model101(rouge3)_unfrozen-full4_{}.config",
+        "id": "ResNet18-rouge3 (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(rouge3)_unfrozen-full4_{}.config",
         "last_layer": "Linear({}, {}, bias=False)",
         "layers_to_unfreeze": ["layer4","fc"],
         "loss": "MSELoss",
         "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
-        "targets": [2]
+        "targets": [2],
+        "test_result_filename": "test_results_v9(rouge3)_unfrozen 4.json"
     },
     {
-        "id": "ResNet101-rougeL (unfrozen 4) v6",
-        "model": "rn.resnet101",
-        "config": "v6 model101(rougeL)_unfrozen-full4_{}.config",
+        "id": "ResNet18-rougeL (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(rougeL)_unfrozen-full4_{}.config",
         "last_layer": "Linear({}, {}, bias=False)",
         "layers_to_unfreeze": ["layer4","fc"],
         "loss": "MSELoss",
         "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
-        "targets": [3]
+        "targets": [3],
+        "test_result_filename": "test_results_v9(rougeL)_unfrozen 4.json"
     },
     {
-        "id": "ResNet101-meteor (unfrozen 4) v6",
-        "model": "rn.resnet101",
-        "config": "v6 model101(meteor)_unfrozen-full4_{}.config",
+        "id": "ResNet18-meteor (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(meteor)_unfrozen-full4_{}.config",
         "last_layer": "Linear({}, {}, bias=False)",
         "layers_to_unfreeze": ["layer4","fc"],
         "loss": "MSELoss",
         "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
-        "targets": [4]
+        "targets": [4],
+        "test_result_filename": "test_results_v9(meteor)_unfrozen 4.json"
     }
   ]
 }
