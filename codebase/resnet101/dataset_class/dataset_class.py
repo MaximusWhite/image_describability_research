@@ -19,12 +19,12 @@ from PIL import Image
 
 class ImageDataset(Dataset):
 
-    def __init__(self, mode='train', split=(0.7, 0.1), transform=None):
+    def __init__(self, mode='train', split=(0.7, 0.1), transform=None, targets=None):
         self.path_to_coco = os.path.expanduser('~/Projects/image_captioning/datasets/coco/annotations/')
         # self.path_to_salicon = os.path.expanduser('~/Projects/image_captioning/datasets/salicon/')
-        self.meta_path = os.path.expanduser('~/Projects/image_captioning/datasets/meta/v2/')
-        self.path_to_img = '/media/fast/mkorchev/datasets/coco/train2014/'
-
+        self.meta_path = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v2/')
+        self.path_to_img = '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco/train2014/'
+        self.targets = targets
         with open(os.path.join(self.meta_path, 'total_scores.json'), 'r') as infile:
             dataset = json.load(infile)
 
@@ -66,12 +66,13 @@ class ImageDataset(Dataset):
             # image = np.stack((image, dim, dim), axis=2)
             # image = np.resize(image, (480, 640, 3))
         # image = image.transpose((2, 0, 1))
-
+        if self.targets == None:
+            scores = [metric['score_average'] for metric in self.dataset[idx]['data']['averages']]
+        else:
+            scores = [self.dataset[idx]['data']['averages'][metric_ind]['score_average'] for metric_ind in self.targets]
         sample = {
             'img': image,
-            'scores': torch.from_numpy(np.array([
-                self.dataset[idx]['data']['averages'][0]['score_average']
-            ]))
+            'scores': torch.from_numpy(np.array(scores))
         }
 
         # sample = {

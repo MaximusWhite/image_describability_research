@@ -1,22 +1,60 @@
-{ "version": "v2",
+{ "version": "v9",
+  "batch_size": 146,
   "models": [
     {
-        "id": "ResNet101-single output (unfrozen 4)",
-        "model": "rn.resnet101",
-        "config": "v2model101(1 out)_unfrozen-full4_{}.config",
-        "last_layer": "Linear({}, 1, bias=False)",
-        "layers_to_freeze": ["layer4","fc"],
+        "id": "ResNet18-b_score (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(b_score)_unfrozen-full4_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["layer4","fc"],
         "loss": "MSELoss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001)"
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
+        "targets": [0],
+        "test_result_filename": "test_results_v9(b_score)_unfrozen 4.json"
     },
     {
-        "id": "ResNet152-single output (unfrozen 4)",
-        "model": "rn.resnet152",
-        "config": "v2model152(1 out)_unfrozen-full4_{}.config",
-        "last_layer": "Linear({}, 1, bias=False)",
-        "layers_to_freeze": ["layer4","fc"],
+        "id": "ResNet18-rouge2 (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(rouge2)_unfrozen-full4_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["layer4","fc"],
         "loss": "MSELoss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001)"
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
+        "targets": [1],
+        "test_result_filename": "test_results_v9(rouge2)_unfrozen 4.json"
+    },
+    {
+        "id": "ResNet18-rouge3 (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(rouge3)_unfrozen-full4_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["layer4","fc"],
+        "loss": "MSELoss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
+        "targets": [2],
+        "test_result_filename": "test_results_v9(rouge3)_unfrozen 4.json"
+    },
+    {
+        "id": "ResNet18-rougeL (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(rougeL)_unfrozen-full4_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["layer4","fc"],
+        "loss": "MSELoss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
+        "targets": [3],
+        "test_result_filename": "test_results_v9(rougeL)_unfrozen 4.json"
+    },
+    {
+        "id": "ResNet18-meteor (unfrozen 4) v9",
+        "model": "rn.resnet18",
+        "config": "v9 model18(meteor)_unfrozen-full4_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["layer4","fc"],
+        "loss": "MSELoss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)",
+        "targets": [4],
+        "test_result_filename": "test_results_v9(meteor)_unfrozen 4.json"
     }
   ]
 }

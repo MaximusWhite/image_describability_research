@@ -1,0 +1,21 @@
+{
+  "metrics": [
+    {
+      "metric_id": "b_score",
+      "callback": "bleu_score"
+    },
+    {
+      "metric_id": "rouge2"
+    },
+    {
+      "metric_id": "rouge3"
+    },
+    {
+      "metric_id": "rougeL"
+    },
+    {
+      "metric_id": "meteor",
+      "callback": "meteor_score"
+    }
+  ]
+}

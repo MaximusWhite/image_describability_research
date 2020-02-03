@@ -4,3 +4,4 @@ datasets/
 **/models/
 **/.idea/
 **/.ipynb_checkpoints/
+**/runs/
