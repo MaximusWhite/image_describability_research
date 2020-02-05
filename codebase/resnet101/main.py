@@ -16,15 +16,11 @@ import matplotlib.pyplot as plt
 # from torch.utils.tensorboard import SummaryWriter
 # writer = SummaryWriter()
 
-cnt = 0
-
 with open(os.path.join('./config.json'), 'r') as infile:
     config = json.load(infile)
 with open(os.path.join('./metrics.json'), 'r') as infile:
     metrics = (json.load(infile))["metrics"]
 
-# model_path = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/models/')
-# model_folder = './models/{}'.format(config['version'])
 model_folder = os.path.join('/mnt/zeta_share_1/mkorchev/image_captioning/models/', config['version'])
 logs_folder = os.path.join(model_folder, 'logs')
 results_folder = os.path.join(model_folder, 'results')
@@ -70,8 +66,6 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler, log_filenam
                 model.eval()   # Set model to evaluate mode
 
             running_loss = 0.0
-            running_corrects = 0
-
             # Iterate over data.
             for i_batch, sample in enumerate(dataloaders[phase]):
                 batch_start = time.time()
@@ -88,14 +82,11 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler, log_filenam
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(img)
-                    #_, preds = torch.max(outputs, 1)
                     loss = criterion(outputs, scores)
-
                     # backward + optimize only if in training phase
                     if phase == 'train':
                         loss.backward()
                         optimizer.step()
-
                 # statistics
                 running_loss += loss.item()
                 batch_end = time.time()
@@ -108,12 +99,8 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler, log_filenam
                         batch_end - batch_start, (time.time() - since) // 60, (time.time() - since) % 60
                         )
                 )
-                #running_corrects += torch.sum(outputs == scores)
-            # if phase == 'train':
-            #     scheduler.step()
 
             epoch_loss = running_loss / len(dataloaders[phase])
-            #epoch_acc = running_corrects.double() / len(dataloaders[phase])
 
             print('{} Loss: {:.4f}'.format(
                 phase, epoch_loss))
@@ -164,13 +151,21 @@ def test_model(model, test_dataset, targets, model_id):
     predictions = np.array(predictions)
     actuals = np.array(actuals)
     for ind in range(len(targets)):
+        plt.clf()
+        plt.scatter(predictions[:, ind], actuals[:, ind], c='blue', alpha=0.3)
+        plt.title('{}: {}'.format(model_id, metrics[targets[ind]]['metric_id']))
+        plt.xlabel('pred')
+        plt.ylabel('actual')
+        plt.savefig(os.path.join(plots_folder, '{}::{} RAW.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
+        plt.clf()
         plt.scatter(predictions[:, ind], actuals[:, ind], c='blue', alpha=0.3)
         plt.title('{}: {}'.format(model_id, metrics[targets[ind]]['metric_id']))
         plt.xlabel('pred')
         plt.ylabel('actual')
         plt.ylim(0.0, 1.0)
         plt.xlim(0.0, 1.0)
-        plt.savefig(os.path.join(plots_folder, '{}::{}.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
+        plt.Normalize(vmin=0.0, vmax=1.0)
+        plt.savefig(os.path.join(plots_folder, '{}::{} NORM.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
         pearson_score = scipy.stats.pearsonr(np.array(actuals[:, ind]).astype(float), np.array(predictions[:, ind]).astype(float))[0]
         print('Pearson correlation coefficient: {}'.format(pearson_score))
     test_results['gt'] = (np.array(test_results['gt']).astype(str)).tolist()
@@ -198,11 +193,7 @@ for mod in config['models']:
         layers = mod['layers_to_unfreeze']
         for name, param in model.named_parameters():
             if all([l not in name for l in layers]):
-            # if not ('layer4' in name or 'fc' in name):
-            #     print('{}\tFrozen'.format(name))
                 param.requires_grad = False
-            # else:
-                # print('{}\tWarm'.format(name))
     if 'loss' in mod:
         loss = (eval(mod['loss']))()
     else:

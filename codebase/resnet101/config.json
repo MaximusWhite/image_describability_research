@@ -1,5 +1,5 @@
 { "version": "v9",
-  "batch_size": 146,
+  "batch_size": 100,
   "models": [
     {
         "id": "ResNet18-b_score (unfrozen 4) v9",

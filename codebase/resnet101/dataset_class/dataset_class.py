@@ -21,7 +21,6 @@ class ImageDataset(Dataset):
 
     def __init__(self, mode='train', split=(0.7, 0.1), transform=None, targets=None):
         self.path_to_coco = os.path.expanduser('~/Projects/image_captioning/datasets/coco/annotations/')
-        # self.path_to_salicon = os.path.expanduser('~/Projects/image_captioning/datasets/salicon/')
         self.meta_path = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v2/')
         self.path_to_img = '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco/train2014/'
         self.targets = targets
@@ -56,16 +55,7 @@ class ImageDataset(Dataset):
             image = image.convert('RGB')
 
         if self.transform:
-            # print('transforming {}'.format(image.size), end='')
             image = self.transform(image)
-            # print(' to {}'.format(image.shape))
-        # print('tshape = ', )
-
-        # if not len(image.shape) == 3:
-            # dim = np.zeros((480, 640))
-            # image = np.stack((image, dim, dim), axis=2)
-            # image = np.resize(image, (480, 640, 3))
-        # image = image.transpose((2, 0, 1))
         if self.targets == None:
             scores = [metric['score_average'] for metric in self.dataset[idx]['data']['averages']]
         else:
@@ -74,10 +64,4 @@ class ImageDataset(Dataset):
             'img': image,
             'scores': torch.from_numpy(np.array(scores))
         }
-
-        # sample = {
-        #     's': image.shape,
-        #     'img': image
-        # }
-
         return sample
