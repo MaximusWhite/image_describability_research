@@ -13,6 +13,7 @@ import json
 import shutil
 import scipy
 import matplotlib.pyplot as plt
+import random
 # from torch.utils.tensorboard import SummaryWriter
 # writer = SummaryWriter()
 
@@ -150,6 +151,7 @@ def test_model(model, test_dataset, targets, model_id):
     print('\n')
     predictions = np.array(predictions)
     actuals = np.array(actuals)
+    pearson_score = []
     for ind in range(len(targets)):
         plt.clf()
         plt.scatter(predictions[:, ind], actuals[:, ind], c='blue', alpha=0.3)
@@ -166,13 +168,17 @@ def test_model(model, test_dataset, targets, model_id):
         plt.xlim(0.0, 1.0)
         plt.Normalize(vmin=0.0, vmax=1.0)
         plt.savefig(os.path.join(plots_folder, '{}::{} NORM.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
-        pearson_score = scipy.stats.pearsonr(np.array(actuals[:, ind]).astype(float), np.array(predictions[:, ind]).astype(float))[0]
+        pearson_score.append(scipy.stats.pearsonr(np.array(actuals[:, ind]).astype(float), np.array(predictions[:, ind]).astype(float))[0])
         print('Pearson correlation coefficient: {}'.format(pearson_score))
     test_results['gt'] = (np.array(test_results['gt']).astype(str)).tolist()
     test_results['pred'] = (np.array(test_results['pred']).astype(str)).tolist()
-    test_results['pearson_score'] = pearson_score
+    test_results['pearson_score'] = (np.array(pearson_score).astype(str)).tolist()
     return test_results
 
+if 'hp_random_search' in config and config['hp_random_search'] == True:
+    rand_search = True
+    fmt_targets = config['pre-format']['targets']
+model_index = 0
 for mod in config['models']:
     targets = mod['targets']
     train_dataset = dc.ImageDataset('train', split=(0.8, 0.1), transform=transform_pile, targets=targets)
@@ -182,6 +188,19 @@ for mod in config['models']:
         'train': DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
         'val': DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
     }
+
+    if rand_search:
+        lr_base = random.uniform(1,10)
+        lr_exp = random.randrange(5, 9)
+        lr = eval('{}e-{}'.format(lr_base, lr_exp))
+        wd_base = random.uniform(1,9)
+        wd_exp = random.randrange(0, 2)
+        wd = eval('{}e-{}'.format(wd_base, wd_exp))
+        for tgt in fmt_targets:
+            config['models'][model_index][tgt] = mod[tgt].format(lr, wd, '{}')
+        with open(os.path.join(model_folder, './config_backup_FORMATTED.json'), 'w') as config_backup:
+            json.dump(config, config_backup, indent=2)
+
     model_id = mod['id']
     print('Training model {}...'.format(model_id))
     print('Batch size: {}'.format(config['batch_size']))
@@ -204,9 +223,10 @@ for mod in config['models']:
         optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
     model = model.to(device)
     log_filename = '{}-LOG.log'.format(model_id)
+    model_index += 1
     model, lowest_loss = train_model(model, loss, optimizer, dataloaders, None, log_filename, num_epochs=25)
     torch.save(model.state_dict(), os.path.join(model_folder, mod['config'].format(lowest_loss)))
     # TEST
     results = test_model(model, test_dataset, mod['targets'], model_id)
     with open(os.path.join(results_folder, mod['test_result_filename']), 'w') as outfile:
-        json.dump(results, outfile)
+       json.dump(results, outfile)
