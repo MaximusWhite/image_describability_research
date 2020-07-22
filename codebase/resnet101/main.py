@@ -2,9 +2,10 @@ import torch
 import numpy as np
 from torchvision.models import resnet as rn
 from torchvision.transforms import transforms
+from torch.nn import functional as F
 from dataset_class import dataset_class as dc
 from torch.utils.data import DataLoader
-from torch.nn import Linear, MSELoss
+from torch.nn import Linear, MSELoss, L1Loss
 import time
 import copy
 import sys
@@ -83,6 +84,7 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler, log_filenam
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
                     outputs = model(img)
+                    #outputs = F.sigmoid(outputs)
                     loss = criterion(outputs, scores)
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -174,7 +176,7 @@ def test_model(model, test_dataset, targets, model_id):
     test_results['pred'] = (np.array(test_results['pred']).astype(str)).tolist()
     test_results['pearson_score'] = (np.array(pearson_score).astype(str)).tolist()
     return test_results
-
+rand_search = False
 if 'hp_random_search' in config and config['hp_random_search'] == True:
     rand_search = True
     fmt_targets = config['pre-format']['targets']
@@ -191,10 +193,10 @@ for mod in config['models']:
 
     if rand_search:
         lr_base = random.uniform(1,10)
-        lr_exp = random.randrange(5, 9)
-        lr = eval('{}e-{}'.format(lr_base, lr_exp))
-        wd_base = random.uniform(1,9)
-        wd_exp = random.randrange(0, 2)
+        lr_exp = random.randrange(1, 10)
+        lr = eval('{}e-6'.format(lr_base, lr_exp))
+        wd_base = random.uniform(1,10)
+        wd_exp = random.randrange(1, 3)
         wd = eval('{}e-{}'.format(wd_base, wd_exp))
         for tgt in fmt_targets:
             config['models'][model_index][tgt] = mod[tgt].format(lr, wd, '{}')
@@ -229,4 +231,4 @@ for mod in config['models']:
     # TEST
     results = test_model(model, test_dataset, mod['targets'], model_id)
     with open(os.path.join(results_folder, mod['test_result_filename']), 'w') as outfile:
-       json.dump(results, outfile)
+        json.dump(results, outfile)
