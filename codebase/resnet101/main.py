@@ -171,7 +171,7 @@ def test_model(model, test_dataset, targets, model_id):
         plt.Normalize(vmin=0.0, vmax=1.0)
         plt.savefig(os.path.join(plots_folder, '{}::{} NORM.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
         pearson_score.append(scipy.stats.pearsonr(np.array(actuals[:, ind]).astype(float), np.array(predictions[:, ind]).astype(float))[0])
-        print('Pearson correlation coefficient: {}'.format(pearson_score))
+        print('Pearson correlation coefficient: {}'.format(pearson_score[ind]))
     test_results['gt'] = (np.array(test_results['gt']).astype(str)).tolist()
     test_results['pred'] = (np.array(test_results['pred']).astype(str)).tolist()
     test_results['pearson_score'] = (np.array(pearson_score).astype(str)).tolist()
@@ -196,7 +196,7 @@ for mod in config['models']:
         lr_exp = random.randrange(1, 10)
         lr = eval('{}e-6'.format(lr_base, lr_exp))
         wd_base = random.uniform(1,10)
-        wd_exp = random.randrange(1, 3)
+        wd_exp = random.randrange(1, 10)
         wd = eval('{}e-{}'.format(wd_base, wd_exp))
         for tgt in fmt_targets:
             config['models'][model_index][tgt] = mod[tgt].format(lr, wd, '{}')
@@ -206,15 +206,21 @@ for mod in config['models']:
     model_id = mod['id']
     print('Training model {}...'.format(model_id))
     print('Batch size: {}'.format(config['batch_size']))
-    model_callback = eval(mod['model'])
-    model = model_callback(pretrained=True, progress=True)
+    
+    ### MODEL INIT ###
+    
+#     model_callback = eval(mod['model'])
+#     model = model_callback(pretrained=False, progress=True)
+    model = torch.hub.load('pytorch/vision:v0.6.0', 'alexnet', pretrained=False)
     if 'last_layer' in mod:
-        model.fc = eval(mod['last_layer'].format(model.fc.in_features, len(targets)))
+        model.classifier[6] = eval(mod['last_layer'].format(model.classifier[6].in_features, len(targets)))
+#         model.fc = eval(mod['last_layer'].format(model.fc.in_features, len(targets)))
     if 'layers_to_unfreeze' in mod:
         layers = mod['layers_to_unfreeze']
-        for name, param in model.named_parameters():
-            if all([l not in name for l in layers]):
-                param.requires_grad = False
+        if len(layers) > 0:
+            for name, param in model.named_parameters():
+                if all([l not in name for l in layers]):
+                    param.requires_grad = False
     if 'loss' in mod:
         loss = (eval(mod['loss']))()
     else:

@@ -1,7 +1,7 @@
-{ "version": "v29-4",
-  "batch_size": 60,
+{ "version": "alexnet-v1(2)",
+  "batch_size": 160,
   "hp_random_search": false,
-  "notes": "unfrozen ; target all, L1loss (looking for WD)",
+  "notes": "AlexNet random search for HP; target all; L1Loss",
   "pre-format": {
     "targets": [
       "id",
@@ -12,60 +12,15 @@
   },
   "models": [
     {
-        "id": "ResNet18-all(lr=5e-6,wd=4e-2) (unfrozen ) v29-4",
-        "model": "rn.resnet18",
-        "config": "v29-4 model18(all)_unfrozen-full (lr=5e-6,wd=4e-2)_{}.config",
+        "id": "AlexNet v1(2) (lr=9e-6,wd=3e-1)",
+        "model": "na",
+        "config": "alexnet-v1(2)(all)_unfrozen-full (lr=9e-6,wd=3e-1)_{}.config",
         "last_layer": "Linear({}, {}, bias=False)",
-        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
+        "layers_to_unfreeze": [],
         "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=5e-6, weight_decay=4e-2)",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=9e-6, weight_decay=3e-1)",
         "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_v29-4(all)(lr=5e-6,wd=4e-2)_unfrozen .json"
-    }, 
-    {
-        "id": "ResNet18-all(lr=5e-6,wd=4e-3) (unfrozen ) v29-4",
-        "model": "rn.resnet18",
-        "config": "v29-4 model18(all)_unfrozen-full (lr=5e-6,wd=4e-3)_{}.config",
-        "last_layer": "Linear({}, {}, bias=False)",
-        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
-        "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=5e-6, weight_decay=4e-3)",
-        "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_v29-4(all)(lr=5e-6,wd=4e-3)_unfrozen .json"
-    },
-    {
-        "id": "ResNet18-all(lr=5e-6,wd=4e-4) (unfrozen ) v29-4",
-        "model": "rn.resnet18",
-        "config": "v29-4 model18(all)_unfrozen-full (lr=5e-6,wd=4e-4)_{}.config",
-        "last_layer": "Linear({}, {}, bias=False)",
-        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
-        "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=5e-6, weight_decay=4e-4)",
-        "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_v29-4(all)(lr=5e-6,wd=4e-4)_unfrozen .json"
-    },
-    {
-        "id": "ResNet18-all(lr=5e-6,wd=4e-5) (unfrozen ) v29-4",
-        "model": "rn.resnet18",
-        "config": "v29-4 model18(all)_unfrozen-full (lr=5e-6,wd=4e-5)_{}.config",
-        "last_layer": "Linear({}, {}, bias=False)",
-        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
-        "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=5e-6, weight_decay=4e-5)",
-        "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_v29-4(all)(lr=5e-6,wd=4e-5)_unfrozen .json"
-    },
-          {
-        "id": "ResNet18-all(lr=5e-6,wd=4e-6) (unfrozen ) v29-4",
-        "model": "rn.resnet18",
-        "config": "v29-4 model18(all)_unfrozen-full (lr=5e-6,wd=4e-6)_{}.config",
-        "last_layer": "Linear({}, {}, bias=False)",
-        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
-        "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=5e-6, weight_decay=4e-6)",
-        "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_v29-4(all)(lr=5e-6,wd=4e-6)_unfrozen .json"
+        "test_result_filename": "test_results_alexnet-v1(2)(lr=9e-6,wd=3e-1).json"
     }
-
   ]
 }
