@@ -94,14 +94,17 @@ def train_model(model, criterion, optimizer, dataloaders, scheduler, log_filenam
                 running_loss += loss.item()
                 batch_end = time.time()
                 loss_data = loss.item()
-                print(
-                    '{} Epoch: {} [{}/{} ({:.2f}%)] Loss: {:.6f}\tTime: {:.3f}s/batch\t Total time: {:.0f}m {:.0f}s'.format(
-                        phase,
-                        epoch, i_batch * config['batch_size'], len(dataloaders[phase].dataset),
-                        100. * i_batch * config['batch_size'] / len(dataloaders[phase].dataset), loss_data,
-                        batch_end - batch_start, (time.time() - since) // 60, (time.time() - since) % 60
-                        )
-                )
+                if i_batch * config['batch_size'] % 700 == 0:
+                    print(
+                        '{} Epoch: {} [{}/{} ({:.2f}%)] Loss: {:.6f}\tTime: {:.3f}s/batch\t Total time: {:.0f}m {:.0f}s'.format(
+                            phase,
+                            epoch, 
+                            i_batch * config['batch_size'], 
+                            len(dataloaders[phase].dataset),
+                            100. * i_batch * config['batch_size'] / len(dataloaders[phase].dataset), loss_data,
+                            batch_end - batch_start, (time.time() - since) // 60, (time.time() - since) % 60
+                            )
+                    )
 
             epoch_loss = running_loss / len(dataloaders[phase])
 
@@ -194,7 +197,7 @@ for mod in config['models']:
     if rand_search:
         lr_base = random.uniform(1,10)
         lr_exp = random.randrange(1, 10)
-        lr = eval('{}e-6'.format(lr_base, lr_exp))
+        lr = eval('{}e-{}'.format(lr_base, lr_exp))
         wd_base = random.uniform(1,10)
         wd_exp = random.randrange(1, 10)
         wd = eval('{}e-{}'.format(wd_base, wd_exp))
@@ -210,8 +213,11 @@ for mod in config['models']:
     ### MODEL INIT ###
     
 #     model_callback = eval(mod['model'])
+        # ResNet from config
 #     model = model_callback(pretrained=False, progress=True)
-    model = torch.hub.load('pytorch/vision:v0.6.0', 'alexnet', pretrained=False)
+        # AlexNet
+#     model = torch.hub.load('pytorch/vision:v0.6.0', 'alexnet', pretrained=True)
+    model = torch.hub.load('pytorch/vision:v0.6.0', 'vgg19', pretrained=True)
     if 'last_layer' in mod:
         model.classifier[6] = eval(mod['last_layer'].format(model.classifier[6].in_features, len(targets)))
 #         model.fc = eval(mod['last_layer'].format(model.fc.in_features, len(targets)))
@@ -219,6 +225,7 @@ for mod in config['models']:
         layers = mod['layers_to_unfreeze']
         if len(layers) > 0:
             for name, param in model.named_parameters():
+    #             print(name)
                 if all([l not in name for l in layers]):
                     param.requires_grad = False
     if 'loss' in mod:

@@ -1,7 +1,7 @@
-{ "version": "alexnet-v1(2)",
-  "batch_size": 160,
-  "hp_random_search": false,
-  "notes": "AlexNet random search for HP; target all; L1Loss",
+{ "version": "VGG-19-v1",
+  "batch_size": 10,
+  "hp_random_search": true,
+  "notes": "VGG-19; target all; L1Loss; random search",
   "pre-format": {
     "targets": [
       "id",
@@ -12,15 +12,48 @@
   },
   "models": [
     {
-        "id": "AlexNet v1(2) (lr=9e-6,wd=3e-1)",
+        "id": "VGG-19-v1 (lr={},wd={})",
         "model": "na",
-        "config": "alexnet-v1(2)(all)_unfrozen-full (lr=9e-6,wd=3e-1)_{}.config",
+        "config": "vgg19-v1(all)_unfrozen-full (lr={},wd={})_{}.config",
         "last_layer": "Linear({}, {}, bias=False)",
         "layers_to_unfreeze": [],
         "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr=9e-6, weight_decay=3e-1)",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr={}, weight_decay={})",
         "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_alexnet-v1(2)(lr=9e-6,wd=3e-1).json"
+        "test_result_filename": "test_results_vgg19-v1(lr={}, wd={}).json"
+    },
+    {
+        "id": "VGG-19-v1 (lr={},wd={})",
+        "model": "na",
+        "config": "vgg19-v1(all)_unfrozen-full (lr={},wd={})_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": [],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr={}, weight_decay={})",
+        "targets": [0,1,2,3,4],
+        "test_result_filename": "test_results_vgg19-v1(lr={}, wd={}).json"
+    },
+    {
+        "id": "VGG-19-v1 (lr={},wd={})",
+        "model": "na",
+        "config": "vgg19-v1(all)_unfrozen-full (lr={},wd={})_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": [],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr={}, weight_decay={})",
+        "targets": [0,1,2,3,4],
+        "test_result_filename": "test_results_vgg19-v1(lr={}, wd={}).json"
+    },
+    {
+        "id": "VGG-19-v1 (lr={},wd={})",
+        "model": "na",
+        "config": "vgg19-v1(all)_unfrozen-full (lr={},wd={})_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": [],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr={}, weight_decay={})",
+        "targets": [0,1,2,3,4],
+        "test_result_filename": "test_results_vgg19-v1(lr={}, wd={}).json"
     }
   ]
 }
