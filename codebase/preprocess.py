@@ -164,7 +164,10 @@ def cider_score_callback(refs, can):
         
     for key in can:
         res[key] = [strip_line(l) for l in can[key]]
-        
+    
+    
+    
+    
     score, _ = cider_scorer.compute_score(gts, res)
     return score
 
@@ -233,7 +236,6 @@ metrics_v3 = [
 ]
 
 def calculate_scores(args):
-    
     captions_permutation_map = args[0]
     annotations_map = args[3]
     metric_callbacks = args[1]
@@ -241,6 +243,7 @@ def calculate_scores(args):
     total = len(captions_permutation_map)
     count = 0
     for key in captions_permutation_map:
+        print(key)
         perm_obj = {
             'scores': {
             }
@@ -271,7 +274,9 @@ def calculate_scores(args):
                     if 'consensus_needed' in metric_callbacks[metric_index]:
                         cand = {}
                         cand[str(key)] = [candidate]
+                        
                         score = metric_callback(councel, cand)
+                        exit()
 #                         print('cider: {}'.format(score))
                     else:
                         score = metric_callback(reference, candidate)
@@ -326,5 +331,5 @@ total_list = loadMetadata('image_list_v3.json',annotationsMeta['images'],make_im
 train_image_list, test_image_list = splitImageList(total_list, 80)
 annotations_map = loadMetadata('annotations_map_v3.json', annotationsMeta['annotations'], make_annotations_map, False)
 captions_permutation_map = loadMetadata('captions_permutation_map_v3.json', (total_list, annotations_map), make_captions_permutations, False)
-scores = loadMetadata('scores_v3.json', (captions_permutation_map, metrics_v3, 'scores_v3.json', annotations_map), calculate_scores, False)
-total_scores = loadMetadata('total_scores_v3.json', (total_list, scores, 'total_scores_v3.json'), filterTrainingScores, False)
+scores = loadMetadata('scores_vtmp.json', (captions_permutation_map, metrics_v3, 'scores_vtmp.json', annotations_map), calculate_scores, True)
+# total_scores = loadMetadata('total_scores_v3.json', (total_list, scores, 'total_scores_v3.json'), filterTrainingScores, False)
