@@ -5,3 +5,4 @@ datasets/
 **/.idea/
 **/.ipynb_checkpoints/
 **/runs/
+codebase/coco_caption/data/
