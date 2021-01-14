@@ -150,7 +150,7 @@ class CiderScorer(object):
             ### iteritems() -> items()
             for (ngram,term_freq) in cnts.items():
                 # give word count 1 if it doesn't appear in reference corpus
-                df = np.log(max(1.0, self.document_frequency[ngram]))
+                df = np.log(max(1.0, self.document_frequency[ngram] - 1))
                 # ngram index
                 n = len(ngram)-1
                 # tf (term_freq) * idf (precomputed idf) for n-grams

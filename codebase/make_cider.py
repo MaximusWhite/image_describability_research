@@ -22,7 +22,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from coco_caption.pycocoevalcap.cider.cider import Cider
-from coco_caption.pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
+# from coco_caption.pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
 
 from collections import defaultdict
 # prereqs:
@@ -84,7 +84,7 @@ score, scores = cider_scorer.compute_score(gts, res)
 
 
 print('saving scores...', end="")
-with open('./coco_caption/results/cider_scores.json', 'w') as f:
+with open('./coco_caption/results/cider_scores_adjusted.json', 'w') as f:
     json.dump(scores.tolist(), f)
 
 print('done')

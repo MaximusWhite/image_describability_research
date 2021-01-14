@@ -6,3 +6,4 @@ datasets/
 **/.ipynb_checkpoints/
 **/runs/
 codebase/coco_caption/data
+codebase/coco_caption/results
