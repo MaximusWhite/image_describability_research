@@ -164,10 +164,7 @@ def cider_score_callback(refs, can):
         
     for key in can:
         res[key] = [strip_line(l) for l in can[key]]
-    
-    
-    
-    
+
     score, _ = cider_scorer.compute_score(gts, res)
     return score
 
@@ -243,7 +240,7 @@ def calculate_scores(args):
     total = len(captions_permutation_map)
     count = 0
     for key in captions_permutation_map:
-        print(key)
+#         print(key)
         perm_obj = {
             'scores': {
             }
@@ -276,7 +273,7 @@ def calculate_scores(args):
                         cand[str(key)] = [candidate]
                         
                         score = metric_callback(councel, cand)
-                        exit()
+#                         exit()
 #                         print('cider: {}'.format(score))
                     else:
                         score = metric_callback(reference, candidate)
