@@ -22,7 +22,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from coco_caption.pycocoevalcap.cider.cider import Cider
-from coco_caption.pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
+# from coco_caption.pycocoevalcap.tokenizer.ptbtokenizer import PTBTokenizer
 
 from collections import defaultdict
 # prereqs:
@@ -30,19 +30,29 @@ from collections import defaultdict
 from rouge_score import rouge_scorer
 # from nlgeval import NLGEval
 # nlgeval = NLGEval()
-import time
 
 
-meta_path =  os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v3/')
+meta_path =  os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v6/')
 
-path_to_annotations = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco/annotations/captions_train2014.json')
+path_to_annotations = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco/annotations/captions_val2014.json')
+# path_to_annotations = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/abstract50/annotations/abstract_annotations.json')
 
-cider_scorer = Cider('coco-val-df')
+
+# cider_scorer = Cider('coco-val-df')
+
+with open('./coco_caption/results/cider_scores_val_map_1v1.json', 'r') as f:
+    cider_score_map = json.load(f)
+
+    
+# same format as with cider map: {image_id}-{cand_caption_id}
+with open('./coco_caption/data/ref_council_map_val.json', 'r') as f:
+    council_map = json.load(f)
+    
 print('Loading BERT model...')
 bert_scorer = BERTScorer(lang="en", rescale_with_baseline=True)
 
-gt_tokenizer = PTBTokenizer(_source='gts')
-res_tokenizer = PTBTokenizer(_source='gts')
+# gt_tokenizer = PTBTokenizer(_source='gts')
+# res_tokenizer = PTBTokenizer(_source='gts')
 
 def loadAnnotationsMeta(annotations_path):
     with open(annotations_path, 'r') as f:
@@ -56,7 +66,7 @@ def make_image_list(images_meta):
             'id': i['id'],
             'file_name': i['file_name']
             } for i in images_meta]
-    with open(os.path.join(meta_path, 'image_list_v3.json'), 'w') as outfile:
+    with open(os.path.join(meta_path, 'image_list_val.json'), 'w') as outfile:
         json.dump(lst, outfile)
     return lst
 
@@ -73,7 +83,7 @@ def make_annotations_map(annotations):
                     'caption': img['caption'].lower(),
                     'id': img['id']
             }]
-    with open(os.path.join(meta_path, 'annotations_map_v3.json'), 'w') as outfile:
+    with open(os.path.join(meta_path, 'annotations_map_val.json'), 'w') as outfile:
                 json.dump(annotations_map, outfile)
     return annotations_map
 
@@ -82,7 +92,7 @@ def make_captions_permutations(args):  # arg 0: list, arg 1: annotations map
     for i in args[0]:
         captions = args[1][str(i['id'])]
         captions_permutation_map[str(i['id'])] = list(itertools.permutations(captions, 2))
-    with open(os.path.join(meta_path, 'captions_permutation_map_v3.json'), 'w') as outfile:
+    with open(os.path.join(meta_path, 'captions_permutation_map_val_v6.json'), 'w') as outfile:
         json.dump(captions_permutation_map, outfile)
     return captions_permutation_map
 
@@ -116,119 +126,118 @@ def splitImageList(imageList, trainPercent): # returns train, test
     return (imageList[:separation_point], imageList[separation_point:])
 
 def bleu_score(ref, can):
-    return nltk.translate.bleu_score.sentence_bleu([ref], can, weights = [1])
+    return nltk.translate.bleu_score.sentence_bleu(ref, can, weights = [1]) if type(ref) is type([]) else nltk.translate.bleu_score.sentence_bleu([ref], can, weights = [1])
 
 def meteor_score(ref, can):
-    return nltk.meteor([ref], can)
+    return nltk.meteor(ref, can) if type(ref) is type([]) else nltk.meteor([ref], can)
 
 def bert_score_callback(ref, can): 
-    P, R, F1 = bert_scorer.score([can],[ref])
+#     _, _, F1 = bert_scorer.score([can],ref) if type(ref) is type([]) else bert_scorer.score([can],[ref])
+
+    _, _, F1 = bert_scorer.score([can],[ref])
     return F1.data[0].item()
 
-def cider_score_callback(refs, can):
-    
-    ### USING PTBTokenizer
-#     gt_list = [{"image_id": "1",
-#       "caption": ref} for ref in refs]
+def cider_score_callback(img_id, can_id, ref_id):
+    return float(cider_score_map['{}-{}-{}'.format(img_id, can_id, ref_id)])
 
-#     cand_list = [{"image_id": "1",
-#       "caption": can}]
+def rougeL_score_callback(ref, can):
+    if type(ref) is type([]):
+        refs = '\n'.join(ref)
+        return rouge_scorer.RougeScorer(['rougeLsum'], use_stemmer=False).score(refs, can)
+    else:
+        return rouge_scorer.RougeScorer(['rougeL'], use_stemmer=False).score(ref, can)
 
-#     def modify_input(gt_list, cand_list):
-#         gts = defaultdict(list)
-#         res = defaultdict(list)
-
-#         for l in gt_list:
-#             gts[l['image_id']].append({"caption": l['caption']})
-
-#         # change of naming convention from cand to res
-#         for l in cand_list:
-#             res[l['image_id']].append({"caption": l['caption']})
-
-#         gts  = gt_tokenizer.tokenize(gts)
-#         res = res_tokenizer.tokenize(res)
-        
-#         return gts, res
-
-#     gts, res = modify_input(gt_list, cand_list)
-
-    
-    ### MANUAL PUNCTUATION REMOVAL
-    gts = {}
-    res = {}
-    
-    def strip_line(line):
-        return line.translate(str.maketrans('', '', string.punctuation))
-    for key in refs:
-        gts[key] = [strip_line(l) for l in refs[key]]
-        
-    for key in can:
-        res[key] = [strip_line(l) for l in can[key]]
-
-    score, _ = cider_scorer.compute_score(gts, res)
-    return score
-
-
-
-metrics = [
-    {
-        'metric_id': 'b_score',
-        'callback': bleu_score
-    }, 
-    {
-        'metric_id': 'rouge2',
-        'callback': rouge_scorer.RougeScorer(['rouge2'], use_stemmer=False).score,
-        'output_transform': (lambda x: x['rouge2'][2])
-    },
-    {
-        'metric_id': 'rouge3',
-        'callback': rouge_scorer.RougeScorer(['rouge3'], use_stemmer=False).score,
-        'output_transform': (lambda x: x['rouge3'][2])
-    },
-    {
-        'metric_id': 'rougeL',
-        'callback': rouge_scorer.RougeScorer(['rougeL'], use_stemmer=False).score,
-        'output_transform': (lambda x: x['rougeL'][2])
-    },
-    {
-        'metric_id': 'meteor',
-        'callback': meteor_score
-    }
-]
+def rouge2_score_callback(ref, can):
+    if type(ref) is not type([]):
+        return rouge_scorer.RougeScorer(['rouge2'], use_stemmer=False).score(ref, can)
+    else:
+        # jackknifing
+        combination_pool = itertools.combinations(ref, len(ref) - 1)
+        rouge_scores = []
+        for comb in combination_pool:
+            comb_max = []
+            for r in comb: 
+                comb_max.append(rouge_scorer.RougeScorer(['rouge2'], use_stemmer=False).score(r, can)['rouge2'][2])
+            rouge_scores.append(np.max(comb_max))
+        return np.average(rouge_scores)
+def rouge3_score_callback(ref, can):
+    if type(ref) is not type([]):
+        return rouge_scorer.RougeScorer(['rouge3'], use_stemmer=False).score(ref, can)
+    else:
+        # jackknifing
+        combination_pool = itertools.combinations(ref, len(ref) - 1)
+        rouge_scores = []
+        for comb in combination_pool:
+            comb_max = []
+            for r in comb: 
+                comb_max.append(rouge_scorer.RougeScorer(['rouge3'], use_stemmer=False).score(r, can)['rouge3'][2])
+            rouge_scores.append(np.max(comb_max))
+        return np.average(rouge_scores)
+# metrics = [
+#     {
+#         'metric_id': 'b_score',
+#         'callback': bleu_score
+#     }, 
+#     {
+#         'metric_id': 'rouge2',
+#         'callback': rouge_scorer.RougeScorer(['rouge2'], use_stemmer=False).score,
+#         'output_transform': (lambda x: x['rouge2'][2])
+#     },
+#     {
+#         'metric_id': 'rouge3',
+#         'callback': rouge_scorer.RougeScorer(['rouge3'], use_stemmer=False).score,
+#         'output_transform': (lambda x: x['rouge3'][2])
+#     },
+#     {
+#         'metric_id': 'rougeL',
+#         'callback': rougeL_score_callback,
+#         'output_transform': (lambda x: x['rougeL'][2])
+#     },
+#     {
+#         'metric_id': 'meteor',
+#         'callback': meteor_score
+#     }
+# ]
 
 
 metrics_v3 = [
     {
         'metric_id': 'b_score',
-        'callback': bleu_score
+        'callback': bleu_score,
+#         'consensus_needed': True
     }, 
     {
         'metric_id': 'rouge2',
-        'callback': rouge_scorer.RougeScorer(['rouge2'], use_stemmer=False).score,
+        'callback': rouge2_score_callback,
+#         'consensus_needed': True
         'output_transform': (lambda x: x['rouge2'][2])
     },
     {
         'metric_id': 'rouge3',
-        'callback': rouge_scorer.RougeScorer(['rouge3'], use_stemmer=False).score,
+        'callback': rouge3_score_callback,
+#         'consensus_needed': True
         'output_transform': (lambda x: x['rouge3'][2])
     },
     {
         'metric_id': 'rougeL',
-        'callback': rouge_scorer.RougeScorer(['rougeL'], use_stemmer=False).score,
-        'output_transform': (lambda x: x['rougeL'][2])
+        'callback': rougeL_score_callback,
+        'output_transform': (lambda x: x['rougeL'][2]),     # rougeLsum for multiple refs; rougeL for one  
+#         'consensus_needed': True
     },
     {
         'metric_id': 'meteor',
-        'callback': meteor_score
+        'callback': meteor_score,
+#         'consensus_needed': True
     }, 
     {
         'metric_id': 'bert',
-        'callback': bert_score_callback
+        'callback': bert_score_callback,
+#         'consensus_needed': True                           # BERTScore can only be 1v1
     },
     {
         'metric_id': 'cider',
         'callback': cider_score_callback,
-        'consensus_needed': True
+#         'consensus_needed': True
     }
 ]
 
@@ -240,44 +249,42 @@ def calculate_scores(args):
     total = len(captions_permutation_map)
     count = 0
     for key in captions_permutation_map:
-#         print(key)
         perm_obj = {
             'scores': {
             }
         }
         
         # for cider and potentially similar metrics
-        og_councel = [c['caption'] for c in annotations_map[str(key)]]
-#         print('working on {} image ({}%)...'.format(count+1, (count+1) / total))
-        
-#         start = time.time()
+#         og_councel = [c['caption'] for c in annotations_map[str(key)]]
+
         for permutation in captions_permutation_map[str(key)]:
             reference = permutation[0]['caption']
             candidate = permutation[1]['caption']
-        
-        ### for using PTBTokenizer
-#             councel = og_councel.copy()
-#             councel.remove(candidate)
+            candidate_id = permutation[1]['id']
+            reference_id = permutation[0]['id']
 
-        ### for manual punctuation removal
-            councel = {}
-            councel[str(key)] = og_councel.copy()
-            councel[str(key)].remove(candidate)
             for metric_index in range(len(metric_callbacks)):
                 
                     metric_id = metric_callbacks[metric_index]['metric_id']
                     metric_callback = metric_callbacks[metric_index]['callback']
                     out_transform = None if 'output_transform' not in metric_callbacks[metric_index] else metric_callbacks[metric_index]['output_transform']
                     if 'consensus_needed' in metric_callbacks[metric_index]:
-                        cand = {}
-                        cand[str(key)] = [candidate]
-                        
-                        score = metric_callback(councel, cand)
+#                         cand = {}
+#                         cand[str(key)] = [candidate]
+                        if metric_id == 'cider':
+                            score = metric_callback(key, candidate_id)
+                        else:
+                            council = council_map['{}-{}'.format(key, candidate_id)]
+                            score = metric_callback(council, candidate)
+#                         print('CIDEr score: {}'.format(score))
 #                         exit()
-#                         print('cider: {}'.format(score))
                     else:
-                        score = metric_callback(reference, candidate)
+                        if metric_id == 'cider':
+                            score = metric_callback(key, candidate_id, reference_id)
+                        else:
+                            score = metric_callback(reference, candidate)
                     if out_transform != None:
+#                         print('score: {}'.format(score))
                         score = out_transform(score)
                     if str(permutation[1]['id']) not in perm_obj['scores']:
                         perm_obj['scores'][str(permutation[1]['id'])] = { 
@@ -291,7 +298,6 @@ def calculate_scores(args):
                         }
 
                     perm_obj['scores'][str(permutation[1]['id'])]['metrics'][metric_index]['results']['scores'].append(score) 
-                
                 
         average_list = [[] for i in range(len(metric_callbacks))]
         variance_list = [[] for i in range(len(metric_callbacks))]
@@ -324,9 +330,9 @@ def calculate_scores(args):
     return scores
 
 annotationsMeta = loadAnnotationsMeta(path_to_annotations)
-total_list = loadMetadata('image_list_v3.json',annotationsMeta['images'],make_image_list, False)
-train_image_list, test_image_list = splitImageList(total_list, 80)
-annotations_map = loadMetadata('annotations_map_v3.json', annotationsMeta['annotations'], make_annotations_map, False)
-captions_permutation_map = loadMetadata('captions_permutation_map_v3.json', (total_list, annotations_map), make_captions_permutations, False)
-scores = loadMetadata('scores_vtmp.json', (captions_permutation_map, metrics_v3, 'scores_vtmp.json', annotations_map), calculate_scores, True)
-# total_scores = loadMetadata('total_scores_v3.json', (total_list, scores, 'total_scores_v3.json'), filterTrainingScores, False)
+total_list = loadMetadata('image_list_val.json',annotationsMeta['images'],make_image_list, False)
+# train_image_list, test_image_list = splitImageList(total_list, 80)
+annotations_map = loadMetadata('annotations_map_val.json', annotationsMeta['annotations'], make_annotations_map, False)
+captions_permutation_map = loadMetadata('captions_permutation_map_val_v6.json', (total_list, annotations_map), make_captions_permutations, False)
+scores = loadMetadata('scores_val_1v1_v6.json', (captions_permutation_map, metrics_v3, 'scores_val_1v1_v6.json', annotations_map), calculate_scores, False)
+total_scores = loadMetadata('total_scores_val_1v1_v6.json', (total_list, scores, 'total_scores_val_1v1_v6.json'), filterTrainingScores, False)

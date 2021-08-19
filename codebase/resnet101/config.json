@@ -1,7 +1,7 @@
-{ "version": "VGG-19-v1",
-  "batch_size": 10,
-  "hp_random_search": true,
-  "notes": "VGG-19; target all; L1Loss; random search",
+{ "version": "baseline152_pt",
+  "batch_size": 125,
+  "hp_random_search": false,
+  "notes": "ResNet152 baseline testing",
   "pre-format": {
     "targets": [
       "id",
@@ -12,48 +12,15 @@
   },
   "models": [
     {
-        "id": "VGG-19-v1 (lr={},wd={})",
-        "model": "na",
-        "config": "vgg19-v1(all)_unfrozen-full (lr={},wd={})_{}.config",
+        "id": "ResNet152 baseline_pt",
+        "model": "rn.resnet152",
+        "config": "v38-4 model152(all)_unfrozen-full (lr=7e-7,wd=4e-8)_{}.config",
         "last_layer": "Linear({}, {}, bias=False)",
-        "layers_to_unfreeze": [],
+        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
         "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr={}, weight_decay={})",
-        "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_vgg19-v1(lr={}, wd={}).json"
-    },
-    {
-        "id": "VGG-19-v1 (lr={},wd={})",
-        "model": "na",
-        "config": "vgg19-v1(all)_unfrozen-full (lr={},wd={})_{}.config",
-        "last_layer": "Linear({}, {}, bias=False)",
-        "layers_to_unfreeze": [],
-        "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr={}, weight_decay={})",
-        "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_vgg19-v1(lr={}, wd={}).json"
-    },
-    {
-        "id": "VGG-19-v1 (lr={},wd={})",
-        "model": "na",
-        "config": "vgg19-v1(all)_unfrozen-full (lr={},wd={})_{}.config",
-        "last_layer": "Linear({}, {}, bias=False)",
-        "layers_to_unfreeze": [],
-        "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr={}, weight_decay={})",
-        "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_vgg19-v1(lr={}, wd={}).json"
-    },
-    {
-        "id": "VGG-19-v1 (lr={},wd={})",
-        "model": "na",
-        "config": "vgg19-v1(all)_unfrozen-full (lr={},wd={})_{}.config",
-        "last_layer": "Linear({}, {}, bias=False)",
-        "layers_to_unfreeze": [],
-        "loss": "L1Loss",
-        "optimizer": "torch.optim.Adam(model.parameters(), lr={}, weight_decay={})",
-        "targets": [0,1,2,3,4],
-        "test_result_filename": "test_results_vgg19-v1(lr={}, wd={}).json"
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=7e-7, weight_decay=4e-8)",
+        "targets": [0,1,2,3,4,5,6],
+        "test_result_filename": "test_results_baseline152_pt.json"
     }
   ]
 }

@@ -1,0 +1,66 @@
+{ "version": "v2-cc_oracle",
+  "batch_size": 20,
+  "hp_random_search": false,
+  "notes": "ResNet34; getting initial correlation results",
+  "pre-format": {
+    "targets": [
+      "id",
+      "config",
+      "optimizer",
+      "test_result_filename"
+    ]
+  },
+  "models": [
+    {
+        "id": "ResNet34(lr=1e-6,wd=1e-8) (unfrozen ) v2-cc_oracle",
+        "model": "rn.resnet34",
+        "config": "v2-cc_oracle model18_unfrozen-full (lr=1e-6,wd=1e-8)_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-8)",
+        "test_result_filename": "test_results_v2-cc_oracle(lr=1e-6,wd=1e-8)_unfrozen .json"
+    },
+    {
+        "id": "ResNet34(lr=1e-4,wd=1e-8) (unfrozen ) v2-cc_oracle",
+        "model": "rn.resnet34",
+        "config": "v2-cc_oracle model18_unfrozen-full (lr=1e-4,wd=1e-8)_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=1e-4, weight_decay=1e-8)",
+        "test_result_filename": "test_results_v2-cc_oracle(lr=1e-4,wd=1e-8)_unfrozen .json"
+    },
+      
+    {
+        "id": "ResNet34(lr=1e-5,wd=1e-8) (unfrozen ) v2-cc_oracle",
+        "model": "rn.resnet34",
+        "config": "v2-cc_oracle model18_unfrozen-full (lr=1e-5,wd=1e-8)_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=1e-8)",
+        "test_result_filename": "test_results_v2-cc_oracle(lr=1e-5,wd=1e-8)_unfrozen .json"
+    },
+     {
+        "id": "ResNet34(lr=1e-7,wd=1e-8) (unfrozen ) v2-cc_oracle",
+        "model": "rn.resnet34",
+        "config": "v2-cc_oracle model18_unfrozen-full (lr=1e-7,wd=1e-8)_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=1e-7, weight_decay=1e-8)",
+        "test_result_filename": "test_results_v2-cc_oracle(lr=1e-7,wd=1e-8)_unfrozen .json"
+    },
+     {
+        "id": "ResNet34(lr=1e-8,wd=1e-8) (unfrozen ) v2-cc_oracle",
+        "model": "rn.resnet34",
+        "config": "v2-cc_oracle model18_unfrozen-full (lr=1e-8,wd=1e-8)_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=1e-8, weight_decay=1e-8)",
+        "test_result_filename": "test_results_v2-cc_oracle(lr=1e-8,wd=1e-8)_unfrozen .json"
+    }
+  ]
+}

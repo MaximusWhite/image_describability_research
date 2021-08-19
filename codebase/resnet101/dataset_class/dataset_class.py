@@ -17,14 +17,20 @@ import torch
 from PIL import Image
 
 
+meta_version = 'v5'
+
+config = {
+    'scores_filename': 'total_scores_v5.json',
+    'img_path': '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco/train2014'
+}
+
 class ImageDataset(Dataset):
 
     def __init__(self, mode='train', split=(0.7, 0.1), transform=None, targets=None):
-        self.path_to_coco = os.path.expanduser('~/Projects/image_captioning/datasets/coco/annotations/')
-        self.meta_path = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v2/')
-        self.path_to_img = '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco/train2014/'
+        self.meta_path = os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/{}/'.format(meta_version))
+        self.path_to_img = config['img_path']
         self.targets = targets
-        with open(os.path.join(self.meta_path, 'total_scores.json'), 'r') as infile:
+        with open(os.path.join(self.meta_path, config['scores_filename']), 'r') as infile:
             dataset = json.load(infile)
 
         train_edge = int(np.interp(split[0], [0, 1], [0, len(dataset) - 1]))

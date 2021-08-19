@@ -26,6 +26,9 @@ class Cider:
     Main Class to compute the CIDEr metric
 
     """
+    def get_df(self):
+        return self.cider_scorer.get_df()
+    
     def __init__(self, df, test=None, refs=None, n=4, sigma=6.0):
         # set cider to sum over 1 to 4-grams
         self._n = n
@@ -38,7 +41,8 @@ class Cider:
         #### HAVE TO MODIFY TO UNPICKLE STUFF PICKLED WITH PYTHON 2
         if df != 'custom' and df != 'corpus':
             f = open(os.path.join(p, 'data', df + '.p'), 'rb')
-            docFreq = pickle.load(f, encoding="latin1")
+#             docFreq = pickle.load(f, encoding="latin1")
+            docFreq = pickle.load(f)
 
             self._docFreq = docFreq['df']
             self._ref_len = np.log(float(docFreq['ref_len']))
@@ -54,7 +58,6 @@ class Cider:
         for id in imgIds:
 #             hypo = res[id]
             ref = gts[id]
-            
             
 #             print('hypo {}: {}'.format(id, hypo))
 #             print('ref {}: {}'.format(id, ref))
@@ -80,6 +83,8 @@ class Cider:
 #         if self._dfMode == 'custom':
 #             self.prepare_df(gts, res)
         
+#         print(len(res.keys()))
+#         print(len(gts.keys()))
         assert(gts.keys() == res.keys())
         imgIds = gts.keys()
 

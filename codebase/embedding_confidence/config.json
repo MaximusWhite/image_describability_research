@@ -1,0 +1,51 @@
+{ "version": "v10-resnet_embeds-MP3-4",
+  "batch_size": 5,
+  "hp_random_search": false,
+  "precomputed_dataset": true,
+  "notes": "SemaConfNetSplit v10-resnet_embeds-MP3-4; retrying with resnet embeds + MP3 after fixed testing; small size batch",
+  "layers": [
+      "Linear1_1(2048, 2048, bias=True)",
+      "Linear1_2(786, 786, bias=True)",
+      "BatchNorm1d(2048)",
+      "BatchNorm1d(786)",
+      "ReLU1_1()",
+      "ReLU1_2()",
+      "Linear(2816, 2048, bias=True)",
+      "ReLU()",
+      "Linear(2048, 4096, bias=True)",
+      "ReLU()",
+      "Linear(4096, 7000, bias=True)", 
+      "ReLU()",
+      "Linear(7000, 2048, bias=True)", 
+      "ReLU()",
+      "Linear(2048, 2048, bias=True)",
+      "BatchNorm1d(2048)",
+      "ReLU()",
+      "Linear(2048, 1, bias=True)", 
+      "BatchNorm1d(1)",
+      "Sigmoid()"
+  ],
+  "pre-format": {
+    "targets": [
+      "id",
+      "config",
+      "optimizer",
+      "test_result_filename"
+    ]
+  },
+  "models": [
+    {
+        "id": "SemaConfNetSplit v10-resnet_embeds-MP3-4(lr=1e-5,wd=1e-8)",
+        "model": "semaconfnetsplit",
+        "config": "v10-resnet_embeds-MP3-4 SemaConfNetSplit (lr=1e-5,wd=1e-8)_{}-{}.config",
+        "epochs": 150,
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
+        "loss": "BCELoss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=1e-5, weight_decay=1e-8)",
+        "targets": [0,1,2,3,4,6],
+        "test_result_filename": "test_results_v10-resnet_embeds-MP3-4-semaconfnetsplit(lr=1e-5,wd=1e-8)_{}.json"
+    }
+
+  ]
+}

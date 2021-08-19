@@ -1,0 +1,26 @@
+{ "version": "baseline34-0",
+  "batch_size": 120,
+  "hp_random_search": false,
+  "notes": "ResNet34 baseline testing",
+  "pre-format": {
+    "targets": [
+      "id",
+      "config",
+      "optimizer",
+      "test_result_filename"
+    ]
+  },
+  "models": [
+    {
+        "id": "ResNet34 baseline-0",
+        "model": "rn.resnet34",
+        "config": "v38-4 model152(all)_unfrozen-full (lr=7e-7,wd=4e-8)_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=7e-7, weight_decay=4e-8)",
+        "targets": [0],
+        "test_result_filename": "test_results_baseline34-0.json"
+    }
+  ]
+}

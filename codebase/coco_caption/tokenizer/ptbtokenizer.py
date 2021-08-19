@@ -39,37 +39,50 @@ class PTBTokenizer:
 
         if self.source == 'gts':
             image_id = [k for k, v in captions_for_image.items() for _ in range(len(v))]
-            sentences = '\n'.join([c['caption'].replace('\n', ' ') for k, v in captions_for_image.items() for c in v])
+            # OG
+#             sentences = '\n'.join([c['caption'].replace('\n', ' ') for k, v in captions_for_image.items() for c in v])
+
+#             print('IMAGE_ID : {}'.format(image_id))
+            sentences = '\n'.join([c.replace('\n', ' ') for k, v in captions_for_image.items() for c in v])
             final_tokenized_captions_for_image = {}
 
         elif self.source == 'res':
             index = [i for i, v in enumerate(captions_for_image)]
             image_id = [v["image_id"] for v in captions_for_image]
-            sentences = '\n'.join(v["caption"].replace('\n', ' ') for v in captions_for_image )
+            #OG
+            #sentences = '\n'.join(v["caption"].replace('\n', ' ') for v in captions_for_image )
+            sentences = '\n'.join(v.replace('\n', ' ') for v in captions_for_image )
             final_tokenized_captions_for_index = []
 
         # ======================================================
         # save sentences to temporary file
         # ======================================================
+        
+        
+        
         path_to_jar_dirname=os.path.dirname(os.path.abspath(__file__))
-        tmp_file = tempfile.NamedTemporaryFile(delete=False, dir=path_to_jar_dirname)
+        tmp_file = tempfile.NamedTemporaryFile(delete=False, dir=path_to_jar_dirname, mode = "w")
         tmp_file.write(sentences)
         tmp_file.close()
 
         # ======================================================
         # tokenize sentence
         # ======================================================
-        cmd.append(os.path.basename(tmp_file.name))
+        cmd.append(os.path.basename(tmp_file.name))   # creating command for console call
         p_tokenizer = subprocess.Popen(cmd, cwd=path_to_jar_dirname, \
                 stdout=subprocess.PIPE)
         token_lines = p_tokenizer.communicate(input=sentences.rstrip())[0]
-        lines = token_lines.split('\n')
+        
+        
+        lines = (token_lines.decode("utf-8")).split('\n') 
+        
         # remove temp file
         os.remove(tmp_file.name)
 
         # ======================================================
         # create dictionary for tokenized captions
         # ======================================================
+        
         if self.source == 'gts':
             for k, line in zip(image_id, lines):
                 if not k in final_tokenized_captions_for_image:

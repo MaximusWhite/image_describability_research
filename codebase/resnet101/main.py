@@ -20,7 +20,7 @@ import random
 
 with open(os.path.join('./config.json'), 'r') as infile:
     config = json.load(infile)
-with open(os.path.join('./metrics.json'), 'r') as infile:
+with open(os.path.join('./metrics_v3.json'), 'r') as infile:
     metrics = (json.load(infile))["metrics"]
 
 model_folder = os.path.join('/mnt/zeta_share_1/mkorchev/image_captioning/models/', config['version'])
@@ -140,44 +140,46 @@ def test_model(model, test_dataset, targets, model_id):
     model.eval()
     predictions = []
     actuals = []
-    for i in range(len(test_dataset)):
-        image = test_dataset[i]['img'].to(device=device, dtype=torch.float)
-        gt = test_dataset[i]['scores'].to(device=device, dtype=torch.float)
-        pred = model(image[None])
-        gt_num = gt.cpu().detach().numpy()
-        pred_num = pred.cpu().detach().numpy()[0]
-        predictions.append(pred_num)
-        actuals.append(gt_num)
-        test_results['gt'].append(gt_num)
-        test_results['pred'].append(pred_num)
-        if i % 100 == 0:
-            print('\rProcessed {:4.4f}%'.format((i / len(test_dataset) * 100)), end="")
-            sys.stdout.flush()
+    with torch.no_grad():
+        for i in range(len(test_dataset)):
+            image = test_dataset[i]['img'].to(device=device, dtype=torch.float)
+            gt = test_dataset[i]['scores'].to(device=device, dtype=torch.float)
+            pred = model(image[None])
+            gt_num = gt.cpu().detach().numpy()
+            pred_num = pred.cpu().detach().numpy()[0]
+            predictions.append(pred_num)
+            actuals.append(gt_num)
+            test_results['gt'].append(gt_num)
+            test_results['pred'].append(pred_num)
+            if i % 100 == 0:
+                print('\rProcessed {:4.4f}%'.format((i / len(test_dataset) * 100)), end="")
+                sys.stdout.flush()
     print('\n')
     predictions = np.array(predictions)
     actuals = np.array(actuals)
     pearson_score = []
     for ind in range(len(targets)):
-        plt.clf()
-        plt.scatter(predictions[:, ind], actuals[:, ind], c='blue', alpha=0.3)
-        plt.title('{}: {}'.format(model_id, metrics[targets[ind]]['metric_id']))
-        plt.xlabel('pred')
-        plt.ylabel('actual')
-        plt.savefig(os.path.join(plots_folder, '{}::{} RAW.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
-        plt.clf()
-        plt.scatter(predictions[:, ind], actuals[:, ind], c='blue', alpha=0.3)
-        plt.title('{}: {}'.format(model_id, metrics[targets[ind]]['metric_id']))
-        plt.xlabel('pred')
-        plt.ylabel('actual')
-        plt.ylim(0.0, 1.0)
-        plt.xlim(0.0, 1.0)
-        plt.Normalize(vmin=0.0, vmax=1.0)
-        plt.savefig(os.path.join(plots_folder, '{}::{} NORM.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
+#         plt.clf()
+#         plt.scatter(predictions[:, ind], actuals[:, ind], c='blue', alpha=0.3)
+#         plt.title('{}: {}'.format(model_id, metrics[targets[ind]]['metric_id']))
+#         plt.xlabel('pred')
+#         plt.ylabel('actual')
+#         plt.savefig(os.path.join(plots_folder, '{}::{} RAW.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
+#         plt.clf()
+#         plt.scatter(predictions[:, ind], actuals[:, ind], c='blue', alpha=0.3)
+#         plt.title('{}: {}'.format(model_id, metrics[targets[ind]]['metric_id']))
+#         plt.xlabel('pred')
+#         plt.ylabel('actual')
+#         plt.ylim(0.0, 1.0)
+#         plt.xlim(0.0, 1.0)
+#         plt.Normalize(vmin=0.0, vmax=1.0)
+#         plt.savefig(os.path.join(plots_folder, '{}::{} NORM.png'.format(model_id, metrics[targets[ind]]['metric_id'])))
         pearson_score.append(scipy.stats.pearsonr(np.array(actuals[:, ind]).astype(float), np.array(predictions[:, ind]).astype(float))[0])
         print('Pearson correlation coefficient: {}'.format(pearson_score[ind]))
     test_results['gt'] = (np.array(test_results['gt']).astype(str)).tolist()
     test_results['pred'] = (np.array(test_results['pred']).astype(str)).tolist()
     test_results['pearson_score'] = (np.array(pearson_score).astype(str)).tolist()
+    test_results['targets'] = targets
     return test_results
 rand_search = False
 if 'hp_random_search' in config and config['hp_random_search'] == True:
@@ -186,13 +188,13 @@ if 'hp_random_search' in config and config['hp_random_search'] == True:
 model_index = 0
 for mod in config['models']:
     targets = mod['targets']
-    train_dataset = dc.ImageDataset('train', split=(0.8, 0.1), transform=transform_pile, targets=targets)
-    val_dataset = dc.ImageDataset('val', split=(0.8, 0.1), transform=transform_pile, targets=targets)
+#     train_dataset = dc.ImageDataset('train', split=(0.8, 0.1), transform=transform_pile, targets=targets)
+#     val_dataset = dc.ImageDataset('val', split=(0.8, 0.1), transform=transform_pile, targets=targets)
     test_dataset = dc.ImageDataset('test', split=(0.8, 0.1), transform=transform_pile, targets=targets)
-    dataloaders = {
-        'train': DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
-        'val': DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
-    }
+#     dataloaders = {
+#         'train': DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
+#         'val': DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
+#     }
 
     if rand_search:
         lr_base = random.uniform(1,10)
@@ -211,16 +213,16 @@ for mod in config['models']:
     print('Batch size: {}'.format(config['batch_size']))
     
     ### MODEL INIT ###
-    
-#     model_callback = eval(mod['model'])
-        # ResNet from config
-#     model = model_callback(pretrained=False, progress=True)
+    # ResNet from config
+    model_callback = eval(mod['model'])
+    model = model_callback(pretrained=True, progress=True)
         # AlexNet
 #     model = torch.hub.load('pytorch/vision:v0.6.0', 'alexnet', pretrained=True)
-    model = torch.hub.load('pytorch/vision:v0.6.0', 'vgg19', pretrained=True)
+        # VGG
+#     model = torch.hub.load('pytorch/vision:v0.6.0', 'vgg19', pretrained=True)
     if 'last_layer' in mod:
-        model.classifier[6] = eval(mod['last_layer'].format(model.classifier[6].in_features, len(targets)))
-#         model.fc = eval(mod['last_layer'].format(model.fc.in_features, len(targets)))
+#         model.classifier[6] = eval(mod['last_layer'].format(model.classifier[6].in_features, len(targets)))
+        model.fc = eval(mod['last_layer'].format(model.fc.in_features, len(targets)))
     if 'layers_to_unfreeze' in mod:
         layers = mod['layers_to_unfreeze']
         if len(layers) > 0:
@@ -239,8 +241,9 @@ for mod in config['models']:
     model = model.to(device)
     log_filename = '{}-LOG.log'.format(model_id)
     model_index += 1
-    model, lowest_loss = train_model(model, loss, optimizer, dataloaders, None, log_filename, num_epochs=25)
-    torch.save(model.state_dict(), os.path.join(model_folder, mod['config'].format(lowest_loss)))
+#     model, lowest_loss = train_model(model, loss, optimizer, dataloaders, None, log_filename, num_epochs=25)
+#     torch.save(model.state_dict(), os.path.join(model_folder, mod['config'].format(lowest_loss)))
+#     model.load_state_dict(torch.load(os.path.join(model_folder, 'v46-resnet_pt model152(all)_unfrozen-full (lr=7e-6,wd=4e-8)_0.10968797647615458.config')))
     # TEST
     results = test_model(model, test_dataset, mod['targets'], model_id)
     with open(os.path.join(results_folder, mod['test_result_filename']), 'w') as outfile:

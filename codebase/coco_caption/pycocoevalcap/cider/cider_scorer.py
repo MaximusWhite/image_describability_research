@@ -57,7 +57,11 @@ def cook_test(test, n=4):
 class CiderScorer(object):
     """CIDEr scorer.
     """
-
+    def get_df(self):
+        return {
+            'df': self.document_frequency,
+            'ref_len': len(self.crefs)        
+        }
     def copy(self):
         ''' copy the refs.'''
         new = CiderScorer(n=self.n)
@@ -107,7 +111,7 @@ class CiderScorer(object):
     
     def __iadd__(self, other):
         '''add an instance (e.g., from another sentence).'''
-
+        # OTHER : (cand, ref_list, img_id)
         if type(other) is tuple:
             ## avoid creating new CiderScorer instances
             self.cook_append(other[0], other[1])
@@ -134,6 +138,8 @@ class CiderScorer(object):
 #         print('1st {}'.format(len(self.ctest)))
 #         print('2nd {}'.format(max(self.document_frequency.values())))
         assert(len(self.ctest) >= max(self.document_frequency.values()))
+        print('ref_len: {}'.format(len(self.crefs)))
+        self.ref_len = np.log(float(len(self.crefs)))
         print('done')
     def compute_cider(self, df_mode = "corpus"):
         def counts2vec(cnts):
@@ -150,7 +156,7 @@ class CiderScorer(object):
             ### iteritems() -> items()
             for (ngram,term_freq) in cnts.items():
                 # give word count 1 if it doesn't appear in reference corpus
-                df = np.log(max(1.0, self.document_frequency[ngram] - 1))
+                df = np.log(max(1.0, self.document_frequency[ngram]))
                 # ngram index
                 n = len(ngram)-1
                 # tf (term_freq) * idf (precomputed idf) for n-grams
@@ -180,6 +186,8 @@ class CiderScorer(object):
             for n in range(self.n):
                 # ngram
                 ### iteritems() -> items()
+#                 print(n)
+                
                 for (ngram,count) in vec_hyp[n].items():
                     # vrama91 : added clipping
                     val[n] += min(vec_hyp[n][ngram], vec_ref[n][ngram]) * vec_ref[n][ngram]
@@ -189,12 +197,12 @@ class CiderScorer(object):
 
                 assert(not math.isnan(val[n]))
                 # vrama91: added a length based gaussian penalty
-                val[n] *= np.e**(-(delta**2)/(2*self.sigma**2))
+#                 val[n] *= np.e**(-(delta**2)/(2*self.sigma**2))    ######################## UNCOMMENT IF NOT STEMMING
             return val
 
         # compute log reference length
-        if df_mode == "corpus" or df_mode == "custom":
-            self.ref_len = np.log(float(len(self.crefs)))
+#         if df_mode == "corpus" or df_mode == "custom":
+#             self.ref_len = np.log(float(len(self.crefs)))
         scores = []
         total = len(self.ctest)
         curr = 0
@@ -237,7 +245,6 @@ class CiderScorer(object):
             self.document_frequency = doc_freq
             # TODO: make this a part of coco-val-df
             self.ref_len = ref_len
-        
         print('calculating scores...')
         # compute cider score
         score = self.compute_cider(df_mode)
