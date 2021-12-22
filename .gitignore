@@ -7,3 +7,5 @@ datasets/
 **/runs/
 codebase/coco_caption/data
 codebase/coco_caption/results
+codebase/criss_cross_oracle
+

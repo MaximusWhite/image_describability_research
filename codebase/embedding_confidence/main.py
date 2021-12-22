@@ -25,7 +25,7 @@ from confidence_network import SemaConfNetSplit as semaconfnetsplit
 with open(os.path.join('./config.json'), 'r') as infile:
     config = json.load(infile)
 
-model_folder = os.path.join('/mnt/zeta_share_1/mkorchev/image_captioning/models/SemaConfNet/', config['version'])
+model_folder = os.path.join('../../../../models/SemaConfNet/', config['version'])
 logs_folder = os.path.join(model_folder, 'logs')
 results_folder = os.path.join(model_folder, 'results')
 plots_folder = os.path.join(model_folder, 'plots')
@@ -195,6 +195,7 @@ def test_model(model, test_dataset, model_id, mode='Lowest Loss'):
     predictions = []
     actuals = []
     
+    preds = []
 #     metas = []
     with torch.no_grad():
         for i in range(len(test_dataset)):
@@ -202,11 +203,13 @@ def test_model(model, test_dataset, model_id, mode='Lowest Loss'):
             embed = torch.from_numpy(np.array([sample['data']])).to(device=device, dtype=torch.float)
             gt = sample['is_true_pair'].to(device=device, dtype=torch.float)
             pred = model(embed)
+            meta = sample['meta']
 #             meta = test_dataset[i]['meta']
 #             if meta in metas:
 #                 print('REPEAT')
 #             metas.append(meta)
 #             print('{}'.format(gt.shape))
+            preds.append([meta, gt.cpu().detach().numpy()[0].item(), pred.cpu().detach().numpy()[0].item()])
             actuals.append(gt.cpu().detach().numpy()[0].item())
             predictions.append(pred.cpu().detach().numpy()[0].item())
 #             print('true: {}; pred: {}/{}'.format(gt.cpu().detach().numpy()[0].item(), torch.round(pred).cpu().detach().numpy()[0].item(), pred.cpu().detach().numpy()[0].item()))
@@ -229,6 +232,8 @@ def test_model(model, test_dataset, model_id, mode='Lowest Loss'):
     print('(% of predicted 1s: {})'.format(np.count_nonzero(predictions) / len(predictions)))
     print('(% of GT 1s: {})'.format(np.count_nonzero(actuals) / len(actuals)))
     
+    with open('../../../../datasets/semaconf_preds.json', 'w') as f:
+        json.dump(preds, f)
 #     np.save(open('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco_train2014_embed/DD_test.npy', "wb"), test_dataset.get_samples())
     return result
 
@@ -236,14 +241,14 @@ def test_model(model, test_dataset, model_id, mode='Lowest Loss'):
 for mod in config['models']:
     if 'precomputed_dataset' in config:
         precomputed_dataset = config['precomputed_dataset']
-    train_dataset = EmbeddingDataset('train', precomputed_dataset, split=(0.7, 0.1))
-    val_dataset = EmbeddingDataset('val', precomputed_dataset, split=(0.7, 0.1))
+#     train_dataset = EmbeddingDataset('train', precomputed_dataset, split=(0.7, 0.1))
+#     val_dataset = EmbeddingDataset('val', precomputed_dataset, split=(0.7, 0.1))
     test_dataset = EmbeddingDataset('test', precomputed_dataset, split=(0.7, 0.1))
     
-    dataloaders = {
-        'train': DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
-        'val': DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
-    }
+#     dataloaders = {
+#         'train': DataLoader(train_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
+#         'val': DataLoader(val_dataset, batch_size=config['batch_size'], shuffle=True, num_workers=10),
+#     }
     
     model_id = mod['id']
     print('Training model {}...'.format(model_id))
@@ -269,7 +274,10 @@ for mod in config['models']:
 
     log_filename = '{}-LOG.log'.format(model_id)
     
-    loss_wts, acc_wts, lowest_loss, max_acc = train_model(model, loss, optimizer, dataloaders, None, log_filename, num_epochs=epochs)
+#     loss_wts, acc_wts, lowest_loss, max_acc = train_model(model, loss, optimizer, dataloaders, None, log_filename, num_epochs=epochs)
+    
+    ## main way
+    """ 
     model.load_state_dict(loss_wts)
     torch.save(model.state_dict(), os.path.join(model_folder, mod['config'].format('LOSS', lowest_loss)))
     results = test_model(model, test_dataset, model_id, 'Lowest Loss') 
@@ -283,13 +291,13 @@ for mod in config['models']:
     
     with open(os.path.join(results_folder, mod['test_result_filename'].format('ACC')), 'w') as outfile:
         json.dump(results, outfile)
-
+    """
 
 #     results = test_model(model, test_dataset, model_id, 'BASELINE') 
     
 #     with open(os.path.join(results_folder, mod['test_result_filename'].format('BASELINE')), 'w') as outfile:
 #         json.dump(results, outfile)
 
-#     model.load_state_dict(torch.load(os.path.join('/mnt/zeta_share_1/mkorchev/image_captioning/models/SemaConfNet/v10-DD_shuffled', 'v10-DD_shuffled SemaConfNetSplit (lr=1e-6,wd=1e-6)_ACC-0.8889828460980913.config'), map_location=device))
-#     results = test_model(model, test_dataset, 'v10-DD_shuffled', 'Highest Accuracy DD test') 
+    model.load_state_dict(torch.load(os.path.join('../../../../models/SemaConfNet/v10-resnet_embeds-MP3-4/v10-resnet_embeds-MP3-4 SemaConfNetSplit (lr=1e-5,wd=1e-8)_ACC-0.9586856728678425.config'), map_location=device))
+    results = test_model(model, test_dataset, 'v10-resnet_embeds-MP3', 'Highest Accuracy') 
     

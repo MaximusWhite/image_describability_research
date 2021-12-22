@@ -1,0 +1,27 @@
+{ "version": "v27-4",
+  "batch_size": 60,
+  "hp_random_search": false,
+  "notes": "Unfrozen fully, target all, L1loss",
+  "pre-format": {
+    "targets": [
+      "id",
+      "config",
+      "optimizer",
+      "test_result_filename"
+    ]
+  },
+  "models": [
+    {
+        "id": "ResNet18-rougeL(lr=1e-6,wd=1e-2) (unfrozen ) v27-4",
+        "model": "rn.resnet18",
+        "config": "v27-4 model18(rougeL)_unfrozen-full(lr=1e-6,wd=1e-2)_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["conv1","bn1","layer1","layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=1e-6, weight_decay=1e-2)",
+        "targets": [0,1,2,3,4],
+        "test_result_filename": "test_results_v27-4(rougeL)(lr=1e-6,wd=1e-2)_unfrozen .json"
+    }
+
+  ]
+}
