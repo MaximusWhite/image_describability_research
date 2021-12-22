@@ -43,9 +43,9 @@ import time
 
 # meta_path =  os.path.expanduser('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v3/')
 
-path_to_corpus_data = "./coco_caption/data/coco_val2014_corpus.json"
-path_to_ref_file = "./coco_caption/data/coco2014val_refs_1v1.json"
-path_to_cand_file = "./coco_caption/data/coco2014val_cands_1v1.json"
+path_to_corpus_data = "./coco_caption/data/coco_train2014_corpus.json"
+path_to_ref_file = "./coco_caption/data/final_refs.json"
+path_to_cand_file = "./coco_caption/data/final_cands.json"
 # path_to_ref_file = "./coco_caption/data/coco2014val_refs.json"
 # path_to_cand_file = "./coco_caption/data/coco2014val_cands.json"
 # path_to_ref_file = "./coco_caption/data/gts.json"
@@ -54,7 +54,7 @@ path_to_cand_file = "./coco_caption/data/coco2014val_cands_1v1.json"
 # ref_file = "./coco_caption/data/gts.json"
 # cand_file = "./coco_caption/data/refs.json"
 
-results_filename = 'cider_scores_val_map_1v1'  ## default: cider_scores_adjusted_map
+results_filename = 'cider_final'  ## default: cider_scores_adjusted_map
 
 print('loading data files...', end="")
 

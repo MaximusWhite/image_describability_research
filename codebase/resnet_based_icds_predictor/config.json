@@ -1,0 +1,42 @@
+{ "version": "final-152-X_pt-1-all",
+  "batch_size": 25,
+  "notes": "FULL CONFIG: unfrozen 3,4 (BLEU, Rouge2, Rouge3, CIDEr); unfrozen 2,3,4 (all metrics); unfrozen full (RougeL, meteor, BERT, CIDEr)",
+  "pre-trained": true,
+  "models": [
+
+    {
+        "id": "ResNet152(lr=7e-6,wd=4e-8) final-152-2,3,4_pt-1-all(METEOR)",
+        "model": "rn.resnet152",
+        "config": "final-152-2,3,4_pt-1-all(lr=7e-6,wd=4e-8)_METEOR_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=7e-6, weight_decay=4e-8)",
+        "targets": [4],
+        "test_result_filename": "test_results_final-152-2,3,4_pt-1-all(lr=7e-6,wd=4e-8)_METEOR.json"
+    },
+    {
+        "id": "ResNet152(lr=7e-6,wd=4e-8) final-152-2,3,4_pt-1-all(BERT)",
+        "model": "rn.resnet152",
+        "config": "final-152-2,3,4_pt-1-all(lr=7e-6,wd=4e-8)_BERT_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=7e-6, weight_decay=4e-8)",
+        "targets": [5],
+        "test_result_filename": "test_results_final-152-2,3,4_pt-1-all(lr=7e-6,wd=4e-8)_BERT.json"
+    },
+      
+          {
+        "id": "ResNet152(lr=7e-6,wd=4e-8) final-152-2,3,4_pt-1-all(CIDER)",
+        "model": "rn.resnet152",
+        "config": "final-152-2,3,4_pt-1-all(lr=7e-6,wd=4e-8)_CIDER_{}.config",
+        "last_layer": "Linear({}, {}, bias=False)",
+        "layers_to_unfreeze": ["layer2","layer3","layer4","fc"],
+        "loss": "L1Loss",
+        "optimizer": "torch.optim.Adam(model.parameters(), lr=7e-6, weight_decay=4e-8)",
+        "targets": [6],
+        "test_result_filename": "test_results_final-152-2,3,4_pt-1-all(lr=7e-6,wd=4e-8)_CIDER.json"
+    }  
+  ]
+}

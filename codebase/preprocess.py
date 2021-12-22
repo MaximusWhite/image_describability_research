@@ -173,32 +173,6 @@ def rouge3_score_callback(ref, can):
                 comb_max.append(rouge_scorer.RougeScorer(['rouge3'], use_stemmer=False).score(r, can)['rouge3'][2])
             rouge_scores.append(np.max(comb_max))
         return np.average(rouge_scores)
-# metrics = [
-#     {
-#         'metric_id': 'b_score',
-#         'callback': bleu_score
-#     }, 
-#     {
-#         'metric_id': 'rouge2',
-#         'callback': rouge_scorer.RougeScorer(['rouge2'], use_stemmer=False).score,
-#         'output_transform': (lambda x: x['rouge2'][2])
-#     },
-#     {
-#         'metric_id': 'rouge3',
-#         'callback': rouge_scorer.RougeScorer(['rouge3'], use_stemmer=False).score,
-#         'output_transform': (lambda x: x['rouge3'][2])
-#     },
-#     {
-#         'metric_id': 'rougeL',
-#         'callback': rougeL_score_callback,
-#         'output_transform': (lambda x: x['rougeL'][2])
-#     },
-#     {
-#         'metric_id': 'meteor',
-#         'callback': meteor_score
-#     }
-# ]
-
 
 metrics_v3 = [
     {

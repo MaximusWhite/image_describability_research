@@ -33,18 +33,18 @@ from rouge_score import rouge_scorer
 import time
 
 # v3 becase it's the same for all versions
-# with open('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v3/annotations_map_v3.json', 'r') as f:
+with open('../../../datasets/meta/v3/annotations_map_v3.json', 'r') as f:
 # with open('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/abstract50_v1/annotations_map.json', 'r') as f:
-#     ann_map = json.load(f)
-    
-# with open('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v3/captions_permutation_map_v3.json', 'r') as f:
-#     captions_permutations_map = json.load(f)
-    
-with open('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v6/annotations_map_val.json', 'r') as f:
     ann_map = json.load(f)
     
-with open('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v6/captions_permutation_map_val_v6.json', 'r') as f:
+with open('../../../datasets/meta/v3/captions_permutation_map_v3.json', 'r') as f:
     captions_permutations_map = json.load(f)
+    
+# with open('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v6/annotations_map_val.json', 'r') as f:
+#     ann_map = json.load(f)
+    
+# with open('/mnt/zeta_share_1/mkorchev/image_captioning/datasets/meta/v6/captions_permutation_map_val_v6.json', 'r') as f:
+#     captions_permutations_map = json.load(f)
     
 class CaptionConsensusPermutator:
     def __init__(self, ann_map):
@@ -73,9 +73,9 @@ class CaptionConsensusPermutator:
             count += 1
             print('\rProcessed {:4.4f}%'.format((count / total * 100)), end="")
             sys.stdout.flush()
-        with open('./coco_caption/data/coco2014val_refs.json', 'w') as f:
+        with open('./coco_caption/data/final_refs.json', 'w') as f:
             json.dump(refs, f)
-        with open('./coco_caption/data/coco2014val_cands.json', 'w') as f:
+        with open('./coco_caption/data/final_cands.json', 'w') as f:
             json.dump(cands, f)
         return (refs, cands)
     
@@ -95,13 +95,13 @@ class CaptionConsensusPermutator:
                 cands.append({'image_id': id_to_match, 'caption': candidate})
             count += 1
             print('\rProcessed {:4.4f}%'.format((count / total * 100)), end="")
-        with open('./coco_caption/data/coco2014val_refs_1v1.json', 'w') as f:
+        with open('./coco_caption/data/final_refs_1v1.json', 'w') as f:
             json.dump(refs, f)
-        with open('./coco_caption/data/coco2014val_cands_1v1.json', 'w') as f:
+        with open('./coco_caption/data/final_cands_1v1.json', 'w') as f:
             json.dump(cands, f)
         return (refs, cands)
 
 permutator = CaptionConsensusPermutator(ann_map)
 # refs, candidaters = permutator.permute()
 refs, candidaters = permutator.permute()
-# refs, candidaters = permutator.permute1v1(captions_permutations_map)
+refs, candidaters = permutator.permute1v1(captions_permutations_map)

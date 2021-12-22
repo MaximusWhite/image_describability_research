@@ -23,9 +23,16 @@ from PIL import Image
 meta_version = 'v5'
 
 config = {
+    
+    #### actual ones 
 #     'img_embed_path': '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco_train2014_embed/',
-    'img_embed_path': '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco_train2014_embed/resnet_img_embeds',
-    'cap_embed_path': '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco_train2014_captions_embed/',
+#     'img_embed_path': '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco_train2014_embed/resnet_img_embeds',
+#     'cap_embed_path': '/mnt/zeta_share_1/mkorchev/image_captioning/datasets/coco_train2014_captions_embed/',
+    
+    #######################
+    'img_embed_path': '../../../../datasets/coco_train2014_embed/resnet_img_embeds',
+    'cap_embed_path': '../../../../datasets/coco_train2014_captions_embed/',
+    
 #     'img_embed_filename': 'total_image_embedding_list.npy',
     'img_embed_filename': 'coco2014_resnet_img_embeds.npy',
     'cap_embed_filename': 'coco2014_caption_embeddings.npy',
@@ -147,7 +154,7 @@ class EmbeddingDataset(Dataset):
         if self.prepicked_pairs:
             data = self.working_dataset[idx][0]
             gt = np.array([self.working_dataset[idx][1]])
-#             meta = self.working_dataset[idx][2]
+            meta = self.working_dataset[idx][2]
 #             print('embed: {} '.format(type(data)))
 #             print('gt: {} '.format(type(gt)))
             
@@ -186,6 +193,6 @@ class EmbeddingDataset(Dataset):
         sample = {
             'data': data,
             'is_true_pair': torch.from_numpy(gt),
-#             'meta': meta
+            'meta': meta
         }
         return sample
